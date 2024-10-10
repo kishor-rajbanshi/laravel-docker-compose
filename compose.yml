@@ -151,3 +151,18 @@ services:
     depends_on:
       artisan:
         condition: service_healthy
+
+  supervisor:
+    image: "${APP_NAME:-laravel}:supervisor"
+    container_name: "${APP_NAME:-laravel}-supervisor"
+    <<: *config
+    build:
+      context: .
+      dockerfile: ./supervisor/Dockerfile
+      args:
+        IMAGE: ${APP_NAME:-laravel}:php
+    volumes:
+      *volumes
+    depends_on:
+      artisan:
+        condition: service_healthy
