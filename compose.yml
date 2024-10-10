@@ -1,0 +1,168 @@
+x-variables: &variables
+  UID: ${UID:-1000}
+  GID: ${GID:-1000}
+  ENV: ${ENV:-production}
+
+x-volumes: &volumes
+  - ${SOURCE_DIR:-../.}:/var/www/html:delegated
+
+x-config: &config
+  restart: unless-stopped
+  working_dir: /var/www/html
+  healthcheck:
+    timeout: 6s
+    interval: 2s
+    retries: 199
+    start_period: 3s
+    test: ["CMD", "test", "-f", "/tmp/ready.signal"]
+
+secrets:
+  mysql_root_password:
+    file: ./secrets/mysql_root_password.txt
+  mysql_password:
+    file: ./secrets/mysql_password.txt
+
+services:
+  nginx:
+    image: ${APP_NAME:-laravel}:nginx
+    container_name: ${APP_NAME:-laravel}-nginx
+    <<: *config
+    build:
+      context: .
+      dockerfile: ./nginx/Dockerfile
+      args:
+        <<: *variables
+        NGINX_VERSION: ${NGINX_VERSION}
+        NGINX_SERVER_NAME: ${NGINX_SERVER_NAME}
+    environment:
+      <<: *variables
+    volumes:
+      *volumes
+    ports:
+      - ${NGINX_MAP_PORT_80:-80}:80
+      - ${NGINX_MAP_PORT_433:-433}:433
+    depends_on:
+      artisan:
+        condition: service_healthy
+      node:
+        condition: service_healthy
+
+  php:
+    image: ${APP_NAME:-laravel}:php
+    container_name: ${APP_NAME:-laravel}-php
+    <<: *config
+    build:
+      context: .
+      dockerfile: ./php/Dockerfile
+      args:
+        <<: *variables
+        PHP_VERSION: ${PHP_VERSION}
+        PHP_EXTENSIONS: ${PHP_EXTENSIONS}
+    volumes:
+      *volumes
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  composer:
+    image: "${APP_NAME:-laravel}:composer"
+    container_name: "${APP_NAME:-laravel}-composer"
+    <<: *config
+    build:
+      context: .
+      dockerfile: ./composer/Dockerfile
+      args:
+        IMAGE: ${APP_NAME:-laravel}:php
+    environment:
+      <<: *variables
+    volumes:
+      *volumes
+    depends_on:
+      php:
+        condition: service_healthy
+
+  artisan:
+    image: "${APP_NAME:-laravel}:artisan"
+    container_name: "${APP_NAME:-laravel}-artisan"
+    <<: *config
+    build:
+      context: .
+      dockerfile: ./artisan/Dockerfile
+      args:
+        IMAGE: ${APP_NAME:-laravel}:php
+    environment:
+      <<: *variables
+    volumes:
+      *volumes
+    depends_on:
+      composer:
+        condition: service_healthy
+
+  mysql:
+    image: ${APP_NAME:-laravel}:mysql
+    container_name: ${APP_NAME:-laravel}-mysql
+    <<: *config
+    build:
+      context: .
+      dockerfile: ./mysql/Dockerfile
+      args:
+        <<: *variables
+        MYSQL_VERSION: ${MYSQL_VERSION}
+    volumes:
+      - ${MYSQL_DATA_DIR:-./mysql/data}:/var/lib/mysql
+      - ${MYSQL_SQL_DIR:-./mysql/sql}:/docker-entrypoint-initdb.d
+    environment:
+      MYSQL_ALLOW_EMPTY_PASSWORD: ${MYSQL_ALLOW_EMPTY_PASSWORD}
+      MYSQL_RANDOM_ROOT_PASSWORD: ${MYSQL_RANDOM_ROOT_PASSWORD}
+      MYSQL_ROOT_PASSWORD_FILE: /run/secrets/mysql_root_password
+      MYSQL_USER: ${MYSQL_USER:-laravel}
+      MYSQL_PASSWORD_FILE: /run/secrets/mysql_password
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-laravel}
+    secrets:
+      - mysql_root_password
+      - mysql_password
+
+  node:
+    image: "${APP_NAME:-laravel}:node"
+    container_name: "${APP_NAME:-laravel}-node"
+    <<: *config
+    build:
+      context: .
+      dockerfile: ./node/Dockerfile
+      args:
+        <<: *variables
+        NODE_VERSION: ${NODE_VERSION}
+    environment:
+      <<: *variables
+    volumes:
+      *volumes
+
+  cron:
+    image: "${APP_NAME:-laravel}:cron"
+    container_name: "${APP_NAME:-laravel}-cron"
+    <<: *config
+    build:
+      context: .
+      dockerfile: ./cron/Dockerfile
+      args:
+        IMAGE: ${APP_NAME:-laravel}:php
+    volumes:
+      *volumes
+    depends_on:
+      artisan:
+        condition: service_healthy
+
+  supervisor:
+    image: "${APP_NAME:-laravel}:supervisor"
+    container_name: "${APP_NAME:-laravel}-supervisor"
+    <<: *config
+    build:
+      context: .
+      dockerfile: ./supervisor/Dockerfile
+      args:
+        IMAGE: ${APP_NAME:-laravel}:php
+    volumes:
+      *volumes
+    depends_on:
+      artisan:
+        condition: service_healthy

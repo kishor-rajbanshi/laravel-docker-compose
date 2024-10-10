@@ -1,0 +1,18 @@
+#!/bin/bash
+
+if [[ "$1" == "set" ]]; then
+    if [[
+        -f ".env" ||
+        -f "secrets/mysql_root_password.txt" ||
+        -f "secrets/mysql_password.txt" ||
+    ]];
+    then
+        echo "Operation aborted: configuration already exists."
+    else
+        cp .env.example .env
+        echo "root_password" >secrets/mysql_root_password.txt
+        echo "password" >secrets/mysql_password.txt
+    fi
+else
+    docker compose --env-file ./.env --env-file ./.env.lock "$@"
+fi
