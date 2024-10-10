@@ -16,6 +16,12 @@ x-config: &config
     start_period: 3s
     test: ["CMD", "test", "-f", "/tmp/ready.signal"]
 
+secrets:
+  mysql_root_password:
+    file: ./secrets/mysql_root_password.txt
+  mysql_password:
+    file: ./secrets/mysql_password.txt
+
 services:
   nginx:
     image: ${APP_NAME:-laravel}:nginx
@@ -52,6 +58,9 @@ services:
         PHP_EXTENSIONS: ${PHP_EXTENSIONS}
     volumes:
       *volumes
+    depends_on:
+      mysql:
+        condition: service_healthy
 
   composer:
     image: "${APP_NAME:-laravel}:composer"
@@ -86,3 +95,27 @@ services:
     depends_on:
       composer:
         condition: service_healthy
+
+  mysql:
+    image: ${APP_NAME:-laravel}:mysql
+    container_name: ${APP_NAME:-laravel}-mysql
+    <<: *config
+    build:
+      context: .
+      dockerfile: ./mysql/Dockerfile
+      args:
+        <<: *variables
+        MYSQL_VERSION: ${MYSQL_VERSION}
+    volumes:
+      - ${MYSQL_DATA_DIR:-./mysql/data}:/var/lib/mysql
+      - ${MYSQL_SQL_DIR:-./mysql/sql}:/docker-entrypoint-initdb.d
+    environment:
+      MYSQL_ALLOW_EMPTY_PASSWORD: ${MYSQL_ALLOW_EMPTY_PASSWORD}
+      MYSQL_RANDOM_ROOT_PASSWORD: ${MYSQL_RANDOM_ROOT_PASSWORD}
+      MYSQL_ROOT_PASSWORD_FILE: /run/secrets/mysql_root_password
+      MYSQL_USER: ${MYSQL_USER:-laravel}
+      MYSQL_PASSWORD_FILE: /run/secrets/mysql_password
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-laravel}
+    secrets:
+      - mysql_root_password
+      - mysql_password
