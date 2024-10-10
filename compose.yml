@@ -44,6 +44,8 @@ services:
     depends_on:
       artisan:
         condition: service_healthy
+      node:
+        condition: service_healthy
 
   php:
     image: ${APP_NAME:-laravel}:php
@@ -119,3 +121,18 @@ services:
     secrets:
       - mysql_root_password
       - mysql_password
+
+  node:
+    image: "${APP_NAME:-laravel}:node"
+    container_name: "${APP_NAME:-laravel}-node"
+    <<: *config
+    build:
+      context: .
+      dockerfile: ./node/Dockerfile
+      args:
+        <<: *variables
+        NODE_VERSION: ${NODE_VERSION}
+    environment:
+      <<: *variables
+    volumes:
+      *volumes
