@@ -52,3 +52,20 @@ services:
         PHP_EXTENSIONS: ${PHP_EXTENSIONS}
     volumes:
       *volumes
+
+  composer:
+    image: "${APP_NAME:-laravel}:composer"
+    container_name: "${APP_NAME:-laravel}-composer"
+    <<: *config
+    build:
+      context: .
+      dockerfile: ./composer/Dockerfile
+      args:
+        IMAGE: ${APP_NAME:-laravel}:php
+    environment:
+      <<: *variables
+    volumes:
+      *volumes
+    depends_on:
+      php:
+        condition: service_healthy
