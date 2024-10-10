@@ -136,3 +136,18 @@ services:
       <<: *variables
     volumes:
       *volumes
+
+  cron:
+    image: "${APP_NAME:-laravel}:cron"
+    container_name: "${APP_NAME:-laravel}-cron"
+    <<: *config
+    build:
+      context: .
+      dockerfile: ./cron/Dockerfile
+      args:
+        IMAGE: ${APP_NAME:-laravel}:php
+    volumes:
+      *volumes
+    depends_on:
+      artisan:
+        condition: service_healthy
