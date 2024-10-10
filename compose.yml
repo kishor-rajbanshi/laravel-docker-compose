@@ -1,0 +1,37 @@
+x-variables: &variables
+  UID: ${UID:-1000}
+  GID: ${GID:-1000}
+  ENV: ${ENV:-production}
+
+x-volumes: &volumes
+  - ${SOURCE_DIR:-../.}:/var/www/html:delegated
+
+x-config: &config
+  restart: unless-stopped
+  working_dir: /var/www/html
+  healthcheck:
+    timeout: 6s
+    interval: 2s
+    retries: 199
+    start_period: 3s
+    test: ["CMD", "test", "-f", "/tmp/ready.signal"]
+
+services:
+  nginx:
+    image: ${APP_NAME:-laravel}:nginx
+    container_name: ${APP_NAME:-laravel}-nginx
+    <<: *config
+    build:
+      context: .
+      dockerfile: ./nginx/Dockerfile
+      args:
+        <<: *variables
+        NGINX_VERSION: ${NGINX_VERSION}
+        NGINX_SERVER_NAME: ${NGINX_SERVER_NAME}
+    environment:
+      <<: *variables
+    volumes:
+      *volumes
+    ports:
+      - ${NGINX_MAP_PORT_80:-80}:80
+      - ${NGINX_MAP_PORT_433:-433}:433
