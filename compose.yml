@@ -36,7 +36,7 @@ services:
       - ${NGINX_MAP_PORT_80:-80}:80
       - ${NGINX_MAP_PORT_433:-433}:433
     depends_on:
-      php:
+      artisan:
         condition: service_healthy
 
   php:
@@ -68,4 +68,21 @@ services:
       *volumes
     depends_on:
       php:
+        condition: service_healthy
+
+  artisan:
+    image: "${APP_NAME:-laravel}:artisan"
+    container_name: "${APP_NAME:-laravel}-artisan"
+    <<: *config
+    build:
+      context: .
+      dockerfile: ./artisan/Dockerfile
+      args:
+        IMAGE: ${APP_NAME:-laravel}:php
+    environment:
+      <<: *variables
+    volumes:
+      *volumes
+    depends_on:
+      composer:
         condition: service_healthy
