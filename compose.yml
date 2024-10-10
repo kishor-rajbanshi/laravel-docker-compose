@@ -35,3 +35,20 @@ services:
     ports:
       - ${NGINX_MAP_PORT_80:-80}:80
       - ${NGINX_MAP_PORT_433:-433}:433
+    depends_on:
+      php:
+        condition: service_healthy
+
+  php:
+    image: ${APP_NAME:-laravel}:php
+    container_name: ${APP_NAME:-laravel}-php
+    <<: *config
+    build:
+      context: .
+      dockerfile: ./php/Dockerfile
+      args:
+        <<: *variables
+        PHP_VERSION: ${PHP_VERSION}
+        PHP_EXTENSIONS: ${PHP_EXTENSIONS}
+    volumes:
+      *volumes
