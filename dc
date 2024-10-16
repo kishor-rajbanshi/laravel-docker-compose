@@ -1,0 +1,24 @@
+#!/bin/bash
+
+if [[ "$1" == "set" ]]; then
+    if [[
+        -f ".env" ||
+        -f "secrets/mysql_root_password.txt" ||
+        -f "secrets/mysql_password.txt" ||
+        -f "secrets/mariadb_root_password.txt" ||
+        -f "secrets/mariadb_password.txt" ]] \
+        ; then
+        echo "Operation aborted: configuration already exists."
+    else
+        cp .env.example .env
+        echo "root_password" >secrets/mysql_root_password.txt
+        echo "password" >secrets/mysql_password.txt
+        echo "root_password" >secrets/mariadb_root_password.txt
+        echo "password" >secrets/mariadb_password.txt
+    fi
+else
+    if [[ "$@" == *"down"* ]]; then
+        set -- "$@" --volumes
+    fi
+    docker compose --env-file ./.env --env-file ./.env.lock "$@"
+fi
