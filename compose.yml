@@ -37,7 +37,6 @@ services:
     depends_on:
       php:
         condition: service_healthy
-        #restart: true
 
   php:
     pull_policy: never
