@@ -8,6 +8,6 @@ else
     cp -f  "$PHP_INI_DIR/php.ini-development" "$PHP_INI_DIR/php.ini";
 fi
 
-[ -f "/var/www/html/php.ini" ] && cp -f /var/www/html/php.ini "$PHP_INI_DIR/conf.d/php.ini"
+ln -sf /var/www/html/php.ini "$PHP_INI_DIR/conf.d/php.ini"
 
 docker-php-entrypoint php-fpm
