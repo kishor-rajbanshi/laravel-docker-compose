@@ -20,7 +20,7 @@ services:
         <<: *uid_gid
         NGINX_VERSION: ${NGINX_VERSION:-stable}
     environment:
-      APP_ENV: ${APP_ENV:-local}
+      APP_DEBUG: ${APP_DEBUG:-true}
       NGINX_HOST: ${NGINX_HOST:-_}
     volumes:
       - ./:/var/www/html:delegated
@@ -61,3 +61,7 @@ services:
       interval: 30s
       timeout: 2s
       retries: 3
+
+  # db:
+  #   pull_policy: never
+  #   image: ${APP_NAME:-laravel}:db
