@@ -3,9 +3,9 @@
 set -e
 
 if [ -f /var/www/html/nginx.conf ]; then
-    ln -s /var/www/html/nginx.conf /etc/nginx/templates/default.conf.template
+    ln -sf /var/www/html/nginx.conf /etc/nginx/templates/default.conf.template
 else
-    cp -f /etc/nginx/templates/default.conf /etc/nginx/templates/default.conf.template
+    ln -sf /etc/nginx/templates/default.conf /etc/nginx/templates/default.conf.template
 fi
 
 if [ "${APP_ENV}" = "local" ] && command -v nginx-debug >/dev/null; then
