@@ -37,6 +37,8 @@ services:
     depends_on:
       php:
         condition: service_healthy
+      db:
+        condition: service_healthy
 
   php:
     pull_policy: never
@@ -61,7 +63,31 @@ services:
       interval: 30s
       timeout: 2s
       retries: 3
+    depends_on:
+      db:
+        condition: service_healthy
 
-  # db:
-  #   pull_policy: never
-  #   image: ${APP_NAME:-laravel}:db
+  db:
+    pull_policy: never
+    image: ${APP_NAME:-laravel}:${DB_CONNECTION:-sqlite}
+    container_name: ${APP_NAME:-laravel}-${DB_CONNECTION:-sqlite}
+    restart: unless-stopped
+    build: 
+      context: ./docker
+      dockerfile: ./db/${DB_CONNECTION:-sqlite}/Dockerfile
+      args:
+        <<: *uid_gid
+        DB_VERSION: ${DB_VERSION}
+    environment:
+      APP_NAME: ${APP_NAME:-laravel}
+
+
+      MYSQL_ROOT_PASSWORD: test
+      MYSQL_DATABASE: test
+
+
+
+
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ${DB_DATA_DIR:-./docker/db/data}:/var/lib
