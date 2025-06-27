@@ -2,6 +2,20 @@
 
 set -e
 
-ln -sf /var/db /var/lib
+export MYSQL_DATABASE=${DB_DATABASE}
+
+if [ "$DB_USERNAME" = "root" ]; then
+    export MYSQL_ROOT_PASSWORD=${DB_PASSWORD}
+else
+    export MYSQL_RANDOM_ROOT_PASSWORD=true
+    export MYSQL_USER=${DB_USERNAME}
+    export MYSQL_PASSWORD=${DB_PASSWORD}
+fi
+
+mkdir -p /var/db/mysql
+
+sed -i 's|^datadir=.*|datadir=/var/db/mysql|' /etc/my.cnf
+
+ln -sf /var/www/html/my.cnf /etc/mysql/my.cnf
 
 docker-entrypoint.sh mysqld

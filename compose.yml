@@ -80,14 +80,10 @@ services:
         DB_VERSION: ${DB_VERSION}
     environment:
       APP_NAME: ${APP_NAME:-laravel}
-
-
-      MYSQL_ROOT_PASSWORD: test
-      MYSQL_DATABASE: test
-
-
-
-
+      DB_DATABASE: ${DB_DATABASE:-laravel}
+      DB_USERNAME: ${DB_USERNAME:-laravel}
+      DB_PASSWORD: ${DB_PASSWORD:-laravel}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ${DB_DATA_DIR:-./docker/db/data}:/var/lib
+      - ./:/var/www/html:delegated
+      - ${DB_DATA_DIR:-./docker/db/data}:/var/db
