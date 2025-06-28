@@ -39,6 +39,8 @@ services:
         condition: service_healthy
       db:
         condition: service_healthy
+      phpmyadmin:
+        condition: service_healthy
 
   php:
     pull_policy: never
@@ -87,3 +89,26 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./:/var/www/html:delegated
       - ${DB_DATA_DIR:-./docker/db/data}:/var/db
+
+  phpmyadmin:
+    image: "phpmyadmin:fpm-alpine"
+    container_name: "${APP_NAME:-laravel}-phpmyadmin"
+    restart: unless-stopped
+    command: cmd.sh
+    environment:
+      PHP_MY_ADMIN: ${PHP_MY_ADMIN:-true}
+      PMA_HOST: ${DB_CONNECTION:-mysql}
+    healthcheck:
+      test: ["CMD", "healthcheck.sh"]
+      interval: 60s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    volumes:
+      - phpmyadmin:/var/www/html
+      - ./docker/phpmyadmin/cmd.sh:/usr/local/bin/cmd.sh
+      - ./docker/phpmyadmin/healthcheck.sh:/usr/local/bin/healthcheck.sh
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      db:
+        condition: service_healthy
