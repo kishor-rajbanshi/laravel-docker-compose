@@ -137,3 +137,4 @@ services:
       - ${VITE_PORT:-5173}:5173
     volumes:
       - ./:/var/www/html:delegated
+      - /var/run/docker.sock:/var/run/docker.sock
