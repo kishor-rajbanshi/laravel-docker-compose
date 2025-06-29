@@ -96,6 +96,7 @@ services:
     restart: unless-stopped
     command: cmd.sh
     environment:
+      APP_NAME: ${APP_NAME:-laravel}
       PHP_MY_ADMIN: ${PHP_MY_ADMIN:-true}
       PMA_HOST: ${DB_CONNECTION:-mysql}
     healthcheck:
