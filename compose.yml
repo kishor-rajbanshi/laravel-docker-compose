@@ -132,6 +132,7 @@ services:
         <<: *uid_gid
         NODE_VERSION: ${NODE_VERSION:-current}
     environment:
+      APP_NAME: ${APP_NAME:-laravel}
       APP_ENV: ${APP_ENV:-local}
     ports:
       - ${VITE_PORT:-5173}:5173
