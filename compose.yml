@@ -101,10 +101,10 @@ services:
       PMA_HOST: ${DB_CONNECTION:-mysql}
     healthcheck:
       test: ["CMD", "healthcheck.sh"]
-      interval: 2s
+      interval: 60s
       timeout: 5s
       retries: 3
-      start_period: 4s
+      start_period: 15s
     volumes:
       - phpmyadmin:/var/www/html
       - ./docker/phpmyadmin/cmd.sh:/usr/local/bin/cmd.sh
