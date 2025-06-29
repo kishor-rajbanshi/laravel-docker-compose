@@ -22,6 +22,7 @@ services:
     environment:
       APP_DEBUG: ${APP_DEBUG:-true}
       NGINX_HOST: ${NGINX_HOST:-_}
+      PHP_MY_ADMIN: ${PHP_MY_ADMIN:-true}
     volumes:
       - ./:/var/www/html:delegated
       - phpmyadmin:/var/www/phpmyadmin
