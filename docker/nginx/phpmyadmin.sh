@@ -1,8 +1,9 @@
 #!/bin/sh
 
-# set -e
+set -e
 
-sed -i '/^}$/i\
+if [ "$PHP_MY_ADMIN" = "true" ] && { [ "$DB_CONNECTION" = "mysql" ] || [ "$DB_CONNECTION" = "mariadb" ]; }; then
+    sed -i '/^}$/i\
     location /phpmyadmin {\
         root /var/www;\
         index index.php;\
@@ -19,3 +20,4 @@ sed -i '/^}$/i\
             log_not_found off;\
         }\
     }' /etc/nginx/conf.d/default.conf
+fi
