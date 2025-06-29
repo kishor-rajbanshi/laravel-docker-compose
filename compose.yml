@@ -118,3 +118,22 @@ services:
     depends_on:
       db:
         condition: service_healthy
+
+  node:
+    pull_policy: never
+    image: "${APP_NAME:-laravel}:node"
+    container_name: "${APP_NAME:-laravel}-node"
+    restart: unless-stopped
+    working_dir: /var/www/html
+    build:
+      context: ./docker
+      dockerfile: ./node/Dockerfile
+      args:
+        <<: *uid_gid
+        NODE_VERSION: ${NODE_VERSION:-current}
+    environment:
+      APP_ENV: ${APP_ENV:-local}
+    ports:
+      - ${VITE_PORT:-5173}:5173
+    volumes:
+      - ./:/var/www/html:delegated
