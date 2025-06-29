@@ -11,6 +11,8 @@ else
     else
         npm run build
 
+        IS_READY=true
+
         while [ "$(docker inspect -f '{{.State.Health.Status}}' ${APP_NAME}-nginx 2>/dev/null)" != "healthy" ]; do
             sleep 1
         done
