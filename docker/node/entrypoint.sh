@@ -10,5 +10,11 @@ else
         npm run dev
     else
         npm run build
+
+        while [ "$(docker inspect -f '{{.State.Health.Status}}' ${APP_NAME}-nginx 2>/dev/null)" != "healthy" ]; do
+            sleep 1
+        done
+
+        docker rm -f "$(hostname)"
     fi
 fi
