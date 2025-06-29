@@ -2,7 +2,11 @@
 
 set -e
 
-if [ "$PHP_MY_ADMIN" = "true" ] && { [ "$PMA_HOST" = "mysql" ] || [ "$PMA_HOST" = "mariadb" ]; }; then
+mkdir -p /etc/phpmyadmin/conf.d
+
+ln -sf /var/www/app/phpmyadmin.config.inc.php /etc/phpmyadmin/conf.d/
+
+if [ "$PHP_MY_ADMIN" = "true" ] && { [ "$DB_CONNECTION" = "mysql" ] || [ "$DB_CONNECTION" = "mariadb" ]; }; then
     /docker-entrypoint.sh php-fpm
 else
     apk add --no-cache docker-cli
