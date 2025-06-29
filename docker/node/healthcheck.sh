@@ -1,5 +1,9 @@
 #!/bin/sh
 
--e
+set -e
 
-CMD wget -q --spider http://localhost:5173 || exit 1
+if [ "$APP_ENV" = "local" ]; then
+  wget -q --spider http://localhost:5173 && exit 0 || exit 1
+else
+  [ "$IS_READY" = "true" ] && exit 0 || exit 1
+fi
