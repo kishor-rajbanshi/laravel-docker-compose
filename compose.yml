@@ -15,7 +15,7 @@ services:
     working_dir: /var/www/html
     build:
       context: ./docker
-      dockerfile: ./nginx/Dockerfile
+      dockerfile: nginx/Dockerfile
       args:
         <<: *uid_gid
         NGINX_VERSION: ${NGINX_VERSION:-stable}
@@ -153,3 +153,28 @@ services:
   #     - ./docker/node/vite.sh:/usr/local/bin/vite.sh:ro
   #     - /var/run/docker.sock:/var/run/docker.sock
   #     - ./docker/node/healthcheck.sh:/usr/local/bin/healthcheck.sh:ro
+
+  # composer:
+  #   pull_policy: never
+  #   image: "${APP_NAME:-laravel}:composer"
+  #   container_name: "${APP_NAME:-laravel}-composer"
+  #   restart: unless-stopped
+  #   working_dir: /var/www/html
+  #   build:
+  #     context: .
+  #     dockerfile: ./docker/composer/Dockerfile
+  #     args:
+  #       IMAGE: ${APP_NAME:-laravel}:php
+  #   environment:
+  #     APP_ENV: ${APP_ENV:-local}
+  #   volumes:
+  #     - ./:/var/www/html:delegated
+  #   healthcheck:
+  #     test: ["CMD", "composer", "check-platform-reqs"]
+  #     start_period: 10s
+  #     interval: 30s
+  #     timeout: 6s
+  #     retries: 3
+  #   depends_on:
+  #     php:
+  #       condition: service_healthy
