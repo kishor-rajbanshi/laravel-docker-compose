@@ -14,7 +14,7 @@ services:
     restart: unless-stopped
     working_dir: /var/www/html
     build:
-      context: ./docker
+      context: docker
       dockerfile: nginx/Dockerfile
       args:
         <<: *uid_gid
