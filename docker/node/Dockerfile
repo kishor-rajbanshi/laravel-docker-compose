@@ -11,4 +11,4 @@ RUN permissions.sh node
 
 USER node
 
-ENTRYPOINT [ "entrypoint.sh" ]
+CMD [ "cmd.sh" ]

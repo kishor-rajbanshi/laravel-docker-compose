@@ -14,8 +14,10 @@ fi
 
 mkdir -p /var/db/mariadb
 
-echo "[mariadbd]\ndatadir=/var/db/mariadb" > /etc/mysql/mariadb.conf.d/datadir.cnf
+echo "[mariadbd]\ndatadir=/var/db/mariadb" >/etc/mysql/mariadb.conf.d/datadir.cnf
 
-ln -sf /var/www/html/mariadb.cnf /etc/mysql/mariadb.conf.d/
+if [ -f /var/www/html/my.cnf ]; then
+    ln -sf /var/www/html/mariadb.cnf /etc/mysql/mariadb.conf.d/
+fi
 
 docker-entrypoint.sh mariadbd

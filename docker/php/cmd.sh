@@ -3,11 +3,13 @@
 set -e
 
 if [ "${APP_ENV}" = "production" ]; then
-    cp -f "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini";
-else 
-    cp -f  "$PHP_INI_DIR/php.ini-development" "$PHP_INI_DIR/php.ini";
+    cp -f "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
+else
+    cp -f "$PHP_INI_DIR/php.ini-development" "$PHP_INI_DIR/php.ini"
 fi
 
-ln -sf /var/www/html/php.ini "$PHP_INI_DIR/conf.d/php.ini"
+if [ -f /var/www/html/php.ini ]; then
+    ln -sf /var/www/html/php.ini "$PHP_INI_DIR/conf.d/php.ini"
+fi
 
 docker-php-entrypoint php-fpm

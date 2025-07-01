@@ -16,6 +16,8 @@ mkdir -p /var/db/mysql
 
 sed -i 's|^datadir=.*|datadir=/var/db/mysql|' /etc/my.cnf
 
-ln -sf /var/www/html/my.cnf /etc/mysql/my.cnf
+if [ -f /var/www/html/my.cnf ]; then
+    ln -sf /var/www/html/my.cnf /etc/mysql/my.cnf
+fi
 
 docker-entrypoint.sh mysqld
