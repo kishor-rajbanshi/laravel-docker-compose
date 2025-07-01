@@ -2,7 +2,7 @@ FROM alpine
 
 RUN apk add --no-cache docker-cli
 
-COPY ./db/sqlite/entrypoint.sh /usr/local/bin/
+COPY db/sqlite/entrypoint.sh /usr/local/bin/
 
 HEALTHCHECK --interval=1s --timeout=3s \
     CMD true

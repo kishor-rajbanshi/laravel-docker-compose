@@ -5,9 +5,9 @@ FROM mariadb:${DB_VERSION:-latest}
 ARG USER_ID
 ARG GROUP_ID
 
-COPY ./permissions.sh /usr/local/bin/
-COPY ./db/mariadb/cmd.sh /usr/local/bin/
-COPY ./db/mariadb/healthcheck.sh /usr/local/bin/
+COPY permissions.sh /usr/local/bin/
+COPY db/mariadb/cmd.sh /usr/local/bin/
+COPY db/mariadb/healthcheck.sh /usr/local/bin/
 
 RUN permissions.sh mysql
 

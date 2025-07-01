@@ -83,8 +83,8 @@ services:
     container_name: ${APP_NAME:-laravel}-${DB_CONNECTION:-sqlite}
     restart: unless-stopped
     build: 
-      context: ./docker
-      dockerfile: ./db/${DB_CONNECTION:-sqlite}/Dockerfile
+      context: docker
+      dockerfile: db/${DB_CONNECTION:-sqlite}/Dockerfile
       args:
         <<: *uid_gid
         DB_VERSION: ${DB_VERSION}
@@ -94,7 +94,7 @@ services:
       DB_USERNAME: ${DB_USERNAME:-laravel}
       DB_PASSWORD: ${DB_PASSWORD:-laravel}
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/run/docker.sock:/var/run/docker.sock:ro
       - ${DB_DATA_DIR:-./docker/db/data}:/var/db
       - ./:/var/www/html:delegated
 
