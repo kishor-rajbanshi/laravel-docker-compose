@@ -6,7 +6,7 @@ ARG USER_ID
 ARG GROUP_ID
 ARG PHP_EXTENSIONS
 
-COPY ./permissions.sh /usr/local/bin/
+COPY permissions.sh /usr/local/bin/
 
 ADD --chmod=0755 https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions /usr/local/bin/
 
