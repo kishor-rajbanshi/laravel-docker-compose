@@ -158,3 +158,16 @@ services:
     volumes:
       - ./docker/composer/entrypoint.sh:/usr/local/bin/entrypoint.sh:ro
       - ./:/var/www/html:delegated
+
+  artisan:
+    pull_policy: never
+    image: "${APP_NAME:-laravel}:php"
+    container_name: "${APP_NAME:-laravel}-artisan"
+    restart: never
+    working_dir: /var/www/html
+    entrypoint: ["entrypoint.sh"]
+    profiles:
+      - tools
+    volumes:
+      - ./docker/artisan/entrypoint.sh:/usr/local/bin/entrypoint.sh:ro
+      - ./:/var/www/html:delegated
