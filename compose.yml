@@ -141,3 +141,20 @@ services:
     volumes:
       - ./:/var/www/html:delegated
       - ./docker/node/update-vite-config.sh:/usr/local/bin/update-vite-config.sh:ro
+
+  composer:
+    pull_policy: never
+    image: "${APP_NAME:-laravel}:composer"
+    container_name: "${APP_NAME:-laravel}-composer"
+    restart: never
+    working_dir: /var/www/html
+    profiles:
+      - tools
+    build:
+      context: docker
+      dockerfile: composer/Dockerfile
+      args:
+        IMAGE: ${APP_NAME:-laravel}:php
+    volumes:
+      - ./docker/composer/entrypoint.sh:/usr/local/bin/entrypoint.sh:ro
+      - ./:/var/www/html:delegated
