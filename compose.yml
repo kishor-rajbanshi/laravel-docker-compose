@@ -46,8 +46,6 @@ services:
         condition: service_healthy
       phpmyadmin:
         condition: service_healthy
-      # node:
-      #   condition: service_healthy
 
   php:
     pull_policy: never
