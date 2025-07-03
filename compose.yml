@@ -121,3 +121,23 @@ services:
     depends_on:
       db:
         condition: service_healthy
+
+  node:
+    pull_policy: never
+    image: "${APP_NAME:-laravel}:node"
+    container_name: "${APP_NAME:-laravel}-node"
+    restart: never
+    working_dir: /var/www/html
+    profiles:
+      - tools
+    build:
+      context: docker
+      dockerfile: node/Dockerfile
+      args:
+        <<: *uid_gid
+        NODE_VERSION: ${NODE_VERSION:-current}
+    ports:
+      - ${VITE_PORT:-5173}:${VITE_PORT:-5173}
+    volumes:
+      - ./:/var/www/html:delegated
+      - ./docker/node/update-vite-config.sh:/usr/local/bin/update-vite-config.sh:ro
