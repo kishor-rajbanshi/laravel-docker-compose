@@ -121,6 +121,25 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    
+  cron:
+    pull_policy: never
+    image: "${APP_NAME:-laravel}:cron"
+    container_name: "${APP_NAME:-laravel}-cron"
+    restart: unless-stopped
+    working_dir: /var/www/html
+    build:
+      context: docker
+      dockerfile: cron/Dockerfile
+      args:
+        IMAGE: ${APP_NAME:-laravel}:php
+    volumes:
+      - ./docker/cron/cmd.sh:/usr/local/bin/cmd.sh:ro
+      - ./docker/cron/jobs:/tmp/jobs:ro
+      - ./:/var/www/html:delegated
+    depends_on:
+      php:
+        condition: service_healthy
 
   node:
     pull_policy: never
@@ -160,6 +179,7 @@ services:
       - ./:/var/www/html:delegated
 
   artisan:
+    user: www-data
     pull_policy: never
     image: "${APP_NAME:-laravel}:php"
     container_name: "${APP_NAME:-laravel}-artisan"
