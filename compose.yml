@@ -160,6 +160,7 @@ services:
       - ./:/var/www/html:delegated
 
   artisan:
+    user: www-data
     pull_policy: never
     image: "${APP_NAME:-laravel}:php"
     container_name: "${APP_NAME:-laravel}-artisan"
