@@ -191,3 +191,6 @@ services:
     volumes:
       - ./docker/artisan/entrypoint.sh:/usr/local/bin/entrypoint.sh:ro
       - ./:/var/www/html:delegated
+    depends_on:
+      db:
+        condition: service_healthy
