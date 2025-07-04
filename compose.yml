@@ -138,7 +138,7 @@ services:
       - ./docker/cron/jobs:/tmp/jobs:ro
       - ./:/var/www/html:delegated
     depends_on:
-      php:
+      db:
         condition: service_healthy
 
   node:
