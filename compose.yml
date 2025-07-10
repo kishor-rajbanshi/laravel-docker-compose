@@ -86,7 +86,7 @@ services:
       dockerfile: db/${DB_CONNECTION:-sqlite}/Dockerfile
       args:
         <<: *uid_gid
-        DB_VERSION: ${DB_VERSION}
+        DB_VERSION: ${DB_VERSION:-latest}
     environment:
       APP_NAME: ${APP_NAME:-laravel}
       DB_DATABASE: ${DB_DATABASE:-laravel}
