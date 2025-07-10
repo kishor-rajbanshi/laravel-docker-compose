@@ -2,6 +2,12 @@
 
 set -e
 
+i=1
+for host in $NGINX_HOSTS; do
+    export NGINX_HOST_$i="$host"
+    i=$((i + 1))
+done
+
 if [ -f /var/www/html/nginx.conf ]; then
     ln -sf /var/www/html/nginx.conf /etc/nginx/templates/default.conf.template
 else

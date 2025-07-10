@@ -21,7 +21,7 @@ services:
         NGINX_VERSION: ${NGINX_VERSION:-stable}
     environment:
       APP_DEBUG: ${APP_DEBUG:-true}
-      NGINX_HOST: ${NGINX_HOST:-_}
+      NGINX_HOSTS: ${NGINX_HOSTS:-_}
       PHP_MY_ADMIN: ${PHP_MY_ADMIN:-true}
       DB_CONNECTION: ${DB_CONNECTION:-mysql}
     volumes:
