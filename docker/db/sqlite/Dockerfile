@@ -1,6 +1,6 @@
 FROM alpine
 
-RUN apk add --no-cache docker-cli
+RUN apk update && apk add --no-cache docker-cli
 
 COPY db/sqlite/entrypoint.sh /usr/local/bin/
 
