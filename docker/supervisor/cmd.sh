@@ -2,16 +2,16 @@
 
 set -e
 
-if [ -f /var/www/html/supervisord.conf ]; then
-    CONF_FILE=/var/www/html/supervisord.conf
-else
-    CONF_FILE=/etc/supervisor.d/default.conf
-fi
-
 if [ "$QUEUE_CONNECTION" = "sync" ]; then
     docker rm -f "$(hostname)"
 fi
 
-envsubst < "$CONF_FILE" > /etc/supervisord.conf
+export DEFAULT_PROGRAM="${APP_NAME}-worker"
+
+envsubst < "/etc/supervisor.d/templates/default.ini" > /etc/supervisor.d/default.ini
+
+if [ -f /var/www/html/supervisor.ini ]; then
+    envsubst < /var/www/html/supervisor.ini > /etc/supervisor.d/supervisor.ini
+fi
 
 exec supervisord -c /etc/supervisord.conf

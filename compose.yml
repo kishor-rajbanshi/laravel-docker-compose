@@ -165,10 +165,17 @@ services:
       additional_contexts:
         php_image: "service:php"
     environment:
+      APP_NAME: ${APP_NAME:-laravel}
       QUEUE_CONNECTION: ${QUEUE_CONNECTION:-database}
+    healthcheck:
+      test: ["CMD", "sh", "-c", "supervisorctl status | grep -q RUNNING"]
+      start_period: 3s
+      interval: 30s
+      timeout: 2s
+      retries: 3
     volumes:
       - ./docker/supervisor/cmd.sh:/usr/local/bin/cmd.sh:ro
-      - ./docker/supervisor/default.conf:/etc/supervisor.d/default.conf:ro
+      - ./docker/supervisor/default.ini:/etc/supervisor.d/templates/default.ini:ro
       - ./:/var/www/html:delegated
     depends_on:
       db:
