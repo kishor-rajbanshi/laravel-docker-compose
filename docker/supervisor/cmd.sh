@@ -6,7 +6,7 @@ if [ "$QUEUE_CONNECTION" = "sync" ]; then
     docker rm -f "$(hostname)"
 fi
 
-export DEFAULT_PROGRAM="${APP_NAME}-worker"
+export DEFAULT_PROGRAM_NAME="${APP_NAME}-worker"
 
 envsubst < "/etc/supervisor.d/templates/default.ini" > /etc/supervisor.d/default.ini
 

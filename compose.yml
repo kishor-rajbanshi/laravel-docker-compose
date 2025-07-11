@@ -168,7 +168,7 @@ services:
       APP_NAME: ${APP_NAME:-laravel}
       QUEUE_CONNECTION: ${QUEUE_CONNECTION:-database}
     healthcheck:
-      test: ["CMD", "sh", "-c", "supervisorctl status | grep -q RUNNING"]
+      test: ["CMD", "healthcheck.sh"]
       start_period: 3s
       interval: 30s
       timeout: 2s
@@ -177,6 +177,7 @@ services:
       - ./docker/supervisor/cmd.sh:/usr/local/bin/cmd.sh:ro
       - ./docker/supervisor/default.ini:/etc/supervisor.d/templates/default.ini:ro
       - ./:/var/www/html:delegated
+      - ./docker/supervisor/healthcheck.sh:/usr/local/bin/healthcheck.sh:ro
     depends_on:
       db:
         condition: service_healthy
