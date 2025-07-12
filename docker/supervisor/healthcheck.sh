@@ -1,9 +1,16 @@
 #!/bin/sh
 
-if supervisorctl status | awk '{print $2}' | grep -vq RUNNING; then
-  echo "❌ One or more programs are not running"
+set -e
+
+if ! pgrep -x supervisord > /dev/null; then
+  echo "❌ supervisord is not running"
   exit 1
 fi
 
-echo "✅ All programs are running"
+if supervisorctl status | awk '{print $2}' | grep -vq RUNNING; then
+  echo "❌ One or more supervisor-managed programs are not running"
+  exit 1
+fi
+
+echo "✅ All supervisor-managed programs are running"
 exit 0
