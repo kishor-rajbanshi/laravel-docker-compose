@@ -1,0 +1,247 @@
+x-uid_gid: &uid_gid
+  USER_ID: ${USER_ID:-1000}
+  GROUP_ID: ${GROUP_ID:-1000}
+
+volumes:
+  phpmyadmin:
+    name: ${APP_NAME:-laravel}_phpmyadmin
+  
+  acme:
+    name: ${APP_NAME:-laravel}_acme
+
+services:
+  nginx:
+    pull_policy: never
+    image: ${APP_NAME:-laravel}:nginx
+    container_name: ${APP_NAME:-laravel}-nginx
+    restart: unless-stopped
+    working_dir: /var/www/html
+    build:
+      context: docker
+      dockerfile: nginx/Dockerfile
+      args:
+        <<: *uid_gid
+        NGINX_VERSION: ${NGINX_VERSION:-stable}
+    environment:
+      APP_DEBUG: ${APP_DEBUG:-true}
+      NGINX_HOSTS: ${NGINX_HOSTS:-_}
+      PHPMYADMIN_ENABLED: ${PHPMYADMIN_ENABLED:-true}
+      DB_CONNECTION: ${DB_CONNECTION:-mysql}
+    volumes:
+      - ./docker/nginx/cmd.sh:/usr/local/bin/cmd.sh:ro
+      - ./docker/nginx/default.conf:/etc/nginx/default.conf.template:ro
+      - ./:/var/www/html:delegated
+      - ./docker/nginx/healthcheck.sh:/usr/local/bin/healthcheck.sh:ro
+      - ./docker/nginx/phpmyadmin.sh:/docker-entrypoint.d/99-phpmyadmin.sh:ro
+      - phpmyadmin:/var/www/phpmyadmin
+    ports:
+      - ${NGINX_PORT:-80}:80
+      # - ${NGINX_SSL_PORT:-433}:433
+    healthcheck:
+      test: ["CMD", "healthcheck.sh"]
+      start_period: 5s
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    depends_on:
+      php:
+        condition: service_healthy
+        restart: true
+      phpmyadmin:
+        condition: service_healthy
+        restart: true
+
+  php:
+    pull_policy: never
+    image: ${APP_NAME:-laravel}:php
+    container_name: ${APP_NAME:-laravel}-php
+    restart: unless-stopped
+    working_dir: /var/www/html
+    build:
+      context: docker
+      dockerfile: php/Dockerfile
+      args:
+        <<: *uid_gid
+        PHP_VERSION: ${PHP_VERSION}
+        PHP_EXTENSIONS: ${PHP_EXTENSIONS}
+    environment:
+      APP_ENV: ${APP_ENV:-local}
+    volumes:
+      - ./docker/php/cmd.sh:/usr/local/bin/cmd.sh:ro
+      - ./:/var/www/html:delegated
+      - ./docker/php/healthcheck.sh:/usr/local/bin/healthcheck.sh:ro
+    healthcheck:
+      test: ["CMD-SHELL", "healthcheck.sh"]
+      start_period: 3s
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    depends_on:
+      db:
+        condition: service_healthy
+        restart: true
+
+  db:
+    pull_policy: never
+    image: ${APP_NAME:-laravel}:${DB_CONNECTION:-sqlite}
+    container_name: ${APP_NAME:-laravel}-${DB_CONNECTION:-sqlite}
+    restart: unless-stopped
+    build: 
+      context: docker
+      dockerfile: db/${DB_CONNECTION:-sqlite}/Dockerfile
+      args:
+        <<: *uid_gid
+        DB_VERSION: ${DB_VERSION:-latest}
+    environment:
+      APP_NAME: ${APP_NAME:-laravel}
+      DB_DATABASE: ${DB_DATABASE:-laravel}
+      DB_USERNAME: ${DB_USERNAME:-laravel}
+      DB_PASSWORD: ${DB_PASSWORD:-laravel}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ${DB_DATA_DIR:-./docker/db/data}:/var/db
+      - ./:/var/www/html:delegated
+
+  phpmyadmin:
+    image: "${APP_NAME:-laravel}:phpmyadmin"
+    container_name: "${APP_NAME:-laravel}-phpmyadmin"
+    restart: unless-stopped
+    build: 
+      context: docker
+      dockerfile: phpmyadmin/Dockerfile
+      args:
+        <<: *uid_gid
+    environment:
+      APP_NAME: ${APP_NAME:-laravel}
+      PHPMYADMIN_ENABLED: ${PHPMYADMIN_ENABLED:-true}
+      DB_CONNECTION: ${DB_CONNECTION:-mysql}
+      PMA_HOST: db
+    healthcheck:
+      test: ["CMD", "healthcheck.sh"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+    volumes:
+      - phpmyadmin:/var/www/html
+      - ./docker/phpmyadmin/cmd.sh:/usr/local/bin/cmd.sh:ro
+      - ./:/var/www/app:delegated
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./docker/phpmyadmin/healthcheck.sh:/usr/local/bin/healthcheck.sh:ro
+    depends_on:
+      db:
+        condition: service_healthy
+        restart: true
+    
+  cron:
+    pull_policy: never
+    image: "${APP_NAME:-laravel}:cron"
+    container_name: "${APP_NAME:-laravel}-cron"
+    restart: unless-stopped
+    working_dir: /var/www/html
+    build:
+      context: docker
+      dockerfile: cron/Dockerfile
+      additional_contexts:
+        php_image: "service:php"
+    environment:
+      CRON_ENABLED: ${CRON_ENABLED:-true}
+    healthcheck:
+      test: ["CMD", "healthcheck.sh"]
+      start_period: 5s
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    volumes:
+      - ./docker/cron/cmd.sh:/usr/local/bin/cmd.sh:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./docker/cron/crontab:/etc/crontabs/crontab:ro
+      - ./:/var/www/html:delegated
+      - ./docker/cron/healthcheck.sh:/usr/local/bin/healthcheck.sh:ro
+    depends_on:
+      db:
+        condition: service_healthy
+        restart: true
+
+  supervisor:
+    pull_policy: never
+    image: "${APP_NAME:-laravel}:supervisor"
+    container_name: "${APP_NAME:-laravel}-supervisor"
+    restart: unless-stopped
+    working_dir: /var/www/html
+    build:
+      context: docker
+      dockerfile: supervisor/Dockerfile
+      additional_contexts:
+        php_image: "service:php"
+    environment:
+      APP_NAME: ${APP_NAME:-laravel}
+      QUEUE_CONNECTION: ${QUEUE_CONNECTION:-database}
+    healthcheck:
+      test: ["CMD", "healthcheck.sh"]
+      start_period: 3s
+      interval: 30s
+      timeout: 2s
+      retries: 3
+    volumes:
+      - ./docker/supervisor/cmd.sh:/usr/local/bin/cmd.sh:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./docker/supervisor/default.ini:/etc/supervisor.d/templates/default.ini.template:ro
+      - ./:/var/www/html:delegated
+      - ./docker/supervisor/healthcheck.sh:/usr/local/bin/healthcheck.sh:ro
+    depends_on:
+      db:
+        condition: service_healthy
+        restart: true
+
+  node:
+    pull_policy: never
+    image: "${APP_NAME:-laravel}:node"
+    container_name: "${APP_NAME:-laravel}-node"
+    restart: no
+    working_dir: /var/www/html
+    profiles:
+      - tools
+    build:
+      context: docker
+      dockerfile: node/Dockerfile
+      args:
+        <<: *uid_gid
+        NODE_VERSION: ${NODE_VERSION:-current}
+    ports:
+      - ${VITE_PORT:-5173}:${VITE_PORT:-5173}
+    volumes:
+      - ./:/var/www/html:delegated
+      - ./docker/node/update-vite-config.sh:/usr/local/bin/update-vite-config.sh:ro
+
+  composer:
+    pull_policy: never
+    image: "${APP_NAME:-laravel}:composer"
+    container_name: "${APP_NAME:-laravel}-composer"
+    restart: no
+    working_dir: /var/www/html
+    profiles:
+      - tools
+    build:
+      context: docker
+      dockerfile: composer/Dockerfile
+      additional_contexts:
+        php_image: "service:php"
+    volumes:
+      - ./:/var/www/html:delegated
+
+  artisan:
+    pull_policy: never
+    image: "${APP_NAME:-laravel}:artisan"
+    container_name: "${APP_NAME:-laravel}-artisan"
+    restart: no
+    working_dir: /var/www/html
+    build:
+      context: docker
+      dockerfile: artisan/Dockerfile
+      additional_contexts:
+        php_image: "service:php"
+    profiles:
+      - tools
+    volumes:
+      - ./:/var/www/html:delegated
