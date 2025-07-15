@@ -3,11 +3,11 @@ x-uid_gid: &uid_gid
   GROUP_ID: ${GROUP_ID:-1000}
 
 volumes:
+  db:
+    name: ${APP_NAME:-laravel}_db
+
   phpmyadmin:
     name: ${APP_NAME:-laravel}_phpmyadmin
-  
-  acme:
-    name: ${APP_NAME:-laravel}_acme
 
 services:
   nginx:
@@ -16,6 +16,8 @@ services:
     container_name: ${APP_NAME:-laravel}-nginx
     restart: unless-stopped
     working_dir: /var/www/html
+    labels: 
+      - ${APP_NAME:-laravel}-nginx
     build:
       context: docker
       dockerfile: nginx/Dockerfile
@@ -99,10 +101,11 @@ services:
       DB_PASSWORD: ${DB_PASSWORD:-laravel}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ${DB_DATA_DIR:-./docker/db/data}:/var/db
+      - ${DB_DATA_DIR:-db}:/var/db
       - ./:/var/www/html:delegated
 
   phpmyadmin:
+    pull_policy: never
     image: "${APP_NAME:-laravel}:phpmyadmin"
     container_name: "${APP_NAME:-laravel}-phpmyadmin"
     restart: unless-stopped

@@ -3,7 +3,7 @@
 set -e
 
 if [ "$CRON_ENABLED" != "true" ]; then
-    docker rm -f "$(hostname)"
+    curl -s -X DELETE --unix-socket /var/run/docker.sock "http://localhost/containers/$(hostname)?force=true"
 fi
 
 if [ -f /var/www/html/crontab ]; then

@@ -1,6 +1,6 @@
 FROM php_image
 
-RUN apk update && apk add --no-cache docker-cli supervisor tini gettext
+RUN apk update && apk add --no-cache supervisor tini gettext
 
 ENTRYPOINT [ "tini", "--" ]
 
