@@ -3,8 +3,6 @@
 set -e
 
 if [ "$PHPMYADMIN_ENABLED" != "true" ] || { [ "$DB_CONNECTION" != "mysql" ] && [ "$DB_CONNECTION" != "mariadb" ]; }; then
-    apk update && apk add --no-cache docker-cli
-
     while [ "$(docker inspect -f '{{.State.Status}}' ${APP_NAME}-nginx 2>/dev/null)" != "running" ]; do
         sleep 1
     done
