@@ -11,6 +11,6 @@ COPY db/mariadb/healthcheck.sh /usr/local/bin/
 
 RUN permissions.sh mysql
 
-HEALTHCHECK --start-period=7s CMD ["healthcheck.sh"]
+HEALTHCHECK --start-period=12s CMD ["healthcheck.sh"]
 
 CMD ["cmd.sh"]

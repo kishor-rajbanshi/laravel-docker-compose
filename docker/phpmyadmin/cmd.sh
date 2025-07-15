@@ -3,13 +3,17 @@
 set -e
 
 if [ "$PHPMYADMIN_ENABLED" != "true" ] || { [ "$DB_CONNECTION" != "mysql" ] && [ "$DB_CONNECTION" != "mariadb" ]; }; then
-    apk update && apk add --no-cache docker-cli
+    while true; do
+        status="$(curl -s --unix-socket /var/run/docker.sock http://localhost/containers/${APP_NAME}-nginx/json | jq -r '.State.Status' 2>/dev/null)"
 
-    while [ "$(docker inspect -f '{{.State.Status}}' ${APP_NAME}-nginx 2>/dev/null)" != "running" ]; do
+        [ "$status" = "running" ] && break
+
+        echo "Waiting for ${APP_NAME}-nginx to start"
+        
         sleep 1
     done
-
-    docker rm -f "$(hostname)"
+    
+    curl -s -X DELETE --unix-socket /var/run/docker.sock "http://localhost/containers/$(hostname)?force=true"
 fi
 
 if [ -f /var/www/app/config.inc.php ]; then

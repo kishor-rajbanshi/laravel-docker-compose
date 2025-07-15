@@ -3,7 +3,7 @@
 set -e
 
 if [ "$QUEUE_CONNECTION" = "sync" ]; then
-    docker rm -f "$(hostname)"
+    curl -s -X DELETE --unix-socket /var/run/docker.sock "http://localhost/containers/$(hostname)?force=true"
 fi
 
 export DEFAULT_PROGRAM_NAME="${APP_NAME}-worker"

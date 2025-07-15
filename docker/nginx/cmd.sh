@@ -8,10 +8,11 @@ for host in $NGINX_HOSTS; do
     i=$((i + 1))
 done
 
+mkdir -p /etc/nginx/templates
+
 if [ -f /var/www/html/nginx.conf ]; then
-    ln -sf /var/www/html/nginx.conf /etc/nginx/templates/nginx.conf.template
+    ln -sf /var/www/html/nginx.conf /etc/nginx/templates/default.conf.template
 else
-    mkdir -p /etc/nginx/templates
     ln -sf /etc/nginx/default.conf.template /etc/nginx/templates/default.conf.template
 fi
 

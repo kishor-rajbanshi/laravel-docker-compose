@@ -1,6 +1,6 @@
 FROM alpine
 
-RUN apk update && apk add --no-cache docker-cli
+RUN apk update && apk add --no-cache curl jq
 
 COPY db/sqlite/cmd.sh /usr/local/bin/
 

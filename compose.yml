@@ -3,11 +3,14 @@ x-uid_gid: &uid_gid
   GROUP_ID: ${GROUP_ID:-1000}
 
 volumes:
+  db:
+    name: ${APP_NAME:-laravel}_db
+
   phpmyadmin:
     name: ${APP_NAME:-laravel}_phpmyadmin
-  
-  acme:
-    name: ${APP_NAME:-laravel}_acme
+
+  ssl:
+    name: ${APP_NAME:-laravel}_ssl
 
 services:
   nginx:
@@ -16,6 +19,8 @@ services:
     container_name: ${APP_NAME:-laravel}-nginx
     restart: unless-stopped
     working_dir: /var/www/html
+    labels: 
+      - ${APP_NAME:-laravel}-nginx
     build:
       context: docker
       dockerfile: nginx/Dockerfile
@@ -24,6 +29,8 @@ services:
         NGINX_VERSION: ${NGINX_VERSION:-stable}
     environment:
       APP_DEBUG: ${APP_DEBUG:-true}
+      NGINX_PORT: ${NGINX_PORT:-80}
+      NGINX_SSL_PORT: ${NGINX_SSL_PORT:-443}
       NGINX_HOSTS: ${NGINX_HOSTS:-_}
       PHPMYADMIN_ENABLED: ${PHPMYADMIN_ENABLED:-true}
       DB_CONNECTION: ${DB_CONNECTION:-mysql}
@@ -32,11 +39,13 @@ services:
       - ./docker/nginx/default.conf:/etc/nginx/default.conf.template:ro
       - ./:/var/www/html:delegated
       - ./docker/nginx/healthcheck.sh:/usr/local/bin/healthcheck.sh:ro
-      - ./docker/nginx/phpmyadmin.sh:/docker-entrypoint.d/99-phpmyadmin.sh:ro
+      - ./docker/nginx/phpmyadmin.sh:/docker-entrypoint.d/60-phpmyadmin.sh:ro
       - phpmyadmin:/var/www/phpmyadmin
+      - ./docker/nginx/ssl.sh:/docker-entrypoint.d/99-ssl.sh:ro
+      - ${SSL_CERT_DIR:-ssl}:/etc/nginx/ssl:ro
     ports:
-      - ${NGINX_PORT:-80}:80
-      # - ${NGINX_SSL_PORT:-433}:433
+      - ${NGINX_PORT:-80}:${NGINX_PORT:-80}
+      - ${NGINX_SSL_PORT:-443}:${NGINX_SSL_PORT:-443}
     healthcheck:
       test: ["CMD", "healthcheck.sh"]
       start_period: 5s
@@ -99,10 +108,11 @@ services:
       DB_PASSWORD: ${DB_PASSWORD:-laravel}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ${DB_DATA_DIR:-./docker/db/data}:/var/db
+      - ${DB_DATA_DIR:-db}:/var/db
       - ./:/var/www/html:delegated
 
   phpmyadmin:
+    pull_policy: never
     image: "${APP_NAME:-laravel}:phpmyadmin"
     container_name: "${APP_NAME:-laravel}-phpmyadmin"
     restart: unless-stopped
