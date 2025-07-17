@@ -9,6 +9,9 @@ volumes:
   phpmyadmin:
     name: ${APP_NAME:-laravel}_phpmyadmin
 
+  ssl:
+    name: ${APP_NAME:-laravel}_ssl
+
 services:
   nginx:
     pull_policy: never
@@ -36,6 +39,7 @@ services:
       - ./docker/nginx/healthcheck.sh:/usr/local/bin/healthcheck.sh:ro
       - ./docker/nginx/phpmyadmin.sh:/docker-entrypoint.d/99-phpmyadmin.sh:ro
       - phpmyadmin:/var/www/phpmyadmin
+      - ${SSL_DIR:-ssl}:/etc/ssl
     ports:
       - ${NGINX_PORT:-80}:80
       # - ${NGINX_SSL_PORT:-433}:433
@@ -196,6 +200,28 @@ services:
       db:
         condition: service_healthy
         restart: true
+    
+  ssl:
+    pull_policy: never
+    image: "${APP_NAME:-laravel}:ssl"
+    container_name: "${APP_NAME:-laravel}-ssl"
+    restart: unless-stopped
+    working_dir: /var/www/html
+    build: 
+      context: docker
+      dockerfile: ssl/Dockerfile
+    environment:
+      SSL_ENABLED: ${SSL_ENABLED:-false}
+      # DEPLOY_DOCKER_CONTAINER_LABEL: ${APP_NAME:-laravel}-nginx
+      # DEPLOY_DOCKER_CONTAINER_KEY_FILE: /etc/ssl/example.com/key.pem
+      # DEPLOY_DOCKER_CONTAINER_CERT_FILE: /etc/ssl/example.com/cert.pem
+      # DEPLOY_DOCKER_CONTAINER_CA_FILE: /etc/ssl/example.com/ca.pem
+      # DEPLOY_DOCKER_CONTAINER_FULLCHAIN_FILE: /etc/ssl/example.com/full.pem
+      # DEPLOY_DOCKER_CONTAINER_RELOAD_CMD: service force-reload
+    volumes:
+      - ./docker/ssl/cmd.sh:/usr/local/bin/cmd.sh:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./:/var/www/html:delegated
 
   node:
     pull_policy: never
@@ -203,6 +229,8 @@ services:
     container_name: "${APP_NAME:-laravel}-node"
     restart: no
     working_dir: /var/www/html
+    stdin_open: true
+    tty: true
     profiles:
       - tools
     build:
@@ -223,6 +251,8 @@ services:
     container_name: "${APP_NAME:-laravel}-composer"
     restart: no
     working_dir: /var/www/html
+    stdin_open: true
+    tty: true
     profiles:
       - tools
     build:
@@ -239,6 +269,8 @@ services:
     container_name: "${APP_NAME:-laravel}-artisan"
     restart: no
     working_dir: /var/www/html
+    stdin_open: true
+    tty: true
     build:
       context: docker
       dockerfile: artisan/Dockerfile
