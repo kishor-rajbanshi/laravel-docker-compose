@@ -196,6 +196,26 @@ services:
       db:
         condition: service_healthy
         restart: true
+    
+  acme:
+    image: "neilpang/acme.sh:latest"
+    container_name: "${APP_NAME:-laravel}-acme"
+    restart: unless-stopped
+    working_dir: /var/www/html
+    stdin_open: true
+    tty: true
+    environment:
+      SSL_ENABLED: ${SSL_ENABLED:-false}
+      DEPLOY_DOCKER_CONTAINER_LABEL: ${APP_NAME:-laravel}-nginx
+      DEPLOY_DOCKER_CONTAINER_KEY_FILE: /etc/nginx/ssl/example.com/key.pem
+      DEPLOY_DOCKER_CONTAINER_CERT_FILE: /etc/nginx/ssl/example.com/cert.pem
+      DEPLOY_DOCKER_CONTAINER_CA_FILE: /etc/nginx/ssl/example.com/ca.pem
+      DEPLOY_DOCKER_CONTAINER_FULLCHAIN_FILE: /etc/nginx/ssl/example.com/full.pem
+      DEPLOY_DOCKER_CONTAINER_RELOAD_CMD: service nginx force-reload
+    volumes:
+      - ./docker/ssl/cmd.sh:/usr/local/bin/cmd.sh:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /var/www/html:/var/www/html:delegated
 
   node:
     pull_policy: never
