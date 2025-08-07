@@ -3,7 +3,7 @@
 if [ "$PHPMYADMIN_ENABLED" = "true" ] && { [ "$DB_CONNECTION" = "mysql" ] || [ "$DB_CONNECTION" = "mariadb" ]; }; then
 
     if [ ! -f /var/www/html/index.php ]; then
-        echo "❌ phpMyAdmin index.php not found"
+        echo "❌ PhpMyAdmin index.php not found"
         exit 1
     fi
 
@@ -15,6 +15,6 @@ if [ "$PHPMYADMIN_ENABLED" = "true" ] && { [ "$DB_CONNECTION" = "mysql" ] || [ "
     echo "✅ PHP-FPM is active on port 9000 and phpMyAdmin is accessible"
     exit 0
 else
-    echo "ℹ️  phpMyAdmin check skipped (not enabled or DB not MySQL/MariaDB)"
+    echo "ℹ️  PhpMyAdmin check skipped (not enabled or unsupported database)"
     exit 0
 fi

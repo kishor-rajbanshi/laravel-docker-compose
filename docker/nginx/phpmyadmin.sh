@@ -2,7 +2,17 @@
 
 set -e
 
+me=$(basename "$0")
+
+cmd_log() {
+    if [ -z "${NGINX_CMD_QUIET_LOGS:-}" ]; then
+        echo "$@"
+    fi
+}
+
 if [ "$PHPMYADMIN_ENABLED" = "true" ] && { [ "$DB_CONNECTION" = "mysql" ] || [ "$DB_CONNECTION" = "mariadb" ]; }; then
+    cmd_log "$me: info: Setting up phpmyadmin"
+
     sed -i '/@phpmyadmin/{
         c\
     location /phpmyadmin {\
@@ -23,5 +33,7 @@ if [ "$PHPMYADMIN_ENABLED" = "true" ] && { [ "$DB_CONNECTION" = "mysql" ] || [ "
     }
     }' /etc/nginx/conf.d/*.conf
 else
+    cmd_log "$me: info: Skipping phpmyadmin - not enabled or unsupported database"
+
     sed -i '/@phpmyadmin/d' /etc/nginx/conf.d/*.conf
 fi
