@@ -4,23 +4,22 @@ x-uid_gid: &uid_gid
 
 volumes:
   db:
-    name: ${APP_NAME:-laravel}_db
+    name: ${COMPOSE_PROJECT_NAME}_db
 
   phpmyadmin:
-    name: ${APP_NAME:-laravel}_phpmyadmin
+    name: ${COMPOSE_PROJECT_NAME}_phpmyadmin
 
   ssl:
-    name: ${APP_NAME:-laravel}_ssl
+    name: ${COMPOSE_PROJECT_NAME}_ssl
 
 services:
   nginx:
     pull_policy: never
-    image: ${APP_NAME:-laravel}:nginx
-    container_name: ${APP_NAME:-laravel}-nginx
+    image: ${COMPOSE_PROJECT_NAME}:nginx
+    container_name: ${COMPOSE_PROJECT_NAME}-nginx
     restart: unless-stopped
     working_dir: /var/www/html
-    labels: 
-      - ${APP_NAME:-laravel}-nginx
+    network_mode: host
     build:
       context: docker
       dockerfile: nginx/Dockerfile
@@ -28,24 +27,24 @@ services:
         <<: *uid_gid
         NGINX_VERSION: ${NGINX_VERSION:-stable}
     environment:
-      APP_DEBUG: ${APP_DEBUG:-true}
-      NGINX_PORT: ${NGINX_PORT:-80}
-      NGINX_SSL_PORT: ${NGINX_SSL_PORT:-443}
       NGINX_HOSTS: ${NGINX_HOSTS:-_}
+      NGINX_PORTS: ${NGINX_PORTS:-80}
+      NGINX_SSL_PORTS: ${NGINX_SSL_PORTS:-443}
+      APP_DEBUG: ${APP_DEBUG:-true}
+      COMPOSE_PROJECT_NAME: ${COMPOSE_PROJECT_NAME}
       PHPMYADMIN_ENABLED: ${PHPMYADMIN_ENABLED:-true}
       DB_CONNECTION: ${DB_CONNECTION:-mysql}
     volumes:
       - ./docker/nginx/cmd.sh:/usr/local/bin/cmd.sh:ro
       - ./docker/nginx/default.conf:/etc/nginx/default.conf.template:ro
+      - ./docker/nginx/extra-hosts.sh:/docker-entrypoint.d/60-extra-hosts.sh:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./docker/nginx/phpmyadmin.sh:/docker-entrypoint.d/61-phpmyadmin.sh:ro
+      - phpmyadmin:/var/www/phpmyadmin
+      - ./docker/nginx/ssl.sh:/docker-entrypoint.d/62-ssl.sh:ro
+      - ${SSL_CERT_DIR:-ssl}:/etc/nginx/ssl:ro
       - ./:/var/www/html:delegated
       - ./docker/nginx/healthcheck.sh:/usr/local/bin/healthcheck.sh:ro
-      - ./docker/nginx/phpmyadmin.sh:/docker-entrypoint.d/60-phpmyadmin.sh:ro
-      - phpmyadmin:/var/www/phpmyadmin
-      - ./docker/nginx/ssl.sh:/docker-entrypoint.d/99-ssl.sh:ro
-      - ${SSL_CERT_DIR:-ssl}:/etc/nginx/ssl:ro
-    ports:
-      - ${NGINX_PORT:-80}:${NGINX_PORT:-80}
-      - ${NGINX_SSL_PORT:-443}:${NGINX_SSL_PORT:-443}
     healthcheck:
       test: ["CMD", "healthcheck.sh"]
       start_period: 5s
@@ -62,8 +61,8 @@ services:
 
   php:
     pull_policy: never
-    image: ${APP_NAME:-laravel}:php
-    container_name: ${APP_NAME:-laravel}-php
+    image: ${COMPOSE_PROJECT_NAME}:php
+    container_name: ${COMPOSE_PROJECT_NAME}-php
     restart: unless-stopped
     working_dir: /var/www/html
     build:
@@ -92,8 +91,8 @@ services:
 
   db:
     pull_policy: never
-    image: ${APP_NAME:-laravel}:${DB_CONNECTION:-sqlite}
-    container_name: ${APP_NAME:-laravel}-${DB_CONNECTION:-sqlite}
+    image: ${COMPOSE_PROJECT_NAME}:${DB_CONNECTION:-sqlite}
+    container_name: ${COMPOSE_PROJECT_NAME}-${DB_CONNECTION:-sqlite}
     restart: unless-stopped
     build: 
       context: docker
@@ -102,7 +101,7 @@ services:
         <<: *uid_gid
         DB_VERSION: ${DB_VERSION:-latest}
     environment:
-      APP_NAME: ${APP_NAME:-laravel}
+      COMPOSE_PROJECT_NAME: ${COMPOSE_PROJECT_NAME}
       DB_DATABASE: ${DB_DATABASE:-laravel}
       DB_USERNAME: ${DB_USERNAME:-laravel}
       DB_PASSWORD: ${DB_PASSWORD:-laravel}
@@ -113,8 +112,8 @@ services:
 
   phpmyadmin:
     pull_policy: never
-    image: "${APP_NAME:-laravel}:phpmyadmin"
-    container_name: "${APP_NAME:-laravel}-phpmyadmin"
+    image: "${COMPOSE_PROJECT_NAME}:phpmyadmin"
+    container_name: "${COMPOSE_PROJECT_NAME}-phpmyadmin"
     restart: unless-stopped
     build: 
       context: docker
@@ -122,7 +121,7 @@ services:
       args:
         <<: *uid_gid
     environment:
-      APP_NAME: ${APP_NAME:-laravel}
+      COMPOSE_PROJECT_NAME: ${COMPOSE_PROJECT_NAME}
       PHPMYADMIN_ENABLED: ${PHPMYADMIN_ENABLED:-true}
       DB_CONNECTION: ${DB_CONNECTION:-mysql}
       PMA_HOST: db
@@ -145,8 +144,8 @@ services:
     
   cron:
     pull_policy: never
-    image: "${APP_NAME:-laravel}:cron"
-    container_name: "${APP_NAME:-laravel}-cron"
+    image: "${COMPOSE_PROJECT_NAME}:cron"
+    container_name: "${COMPOSE_PROJECT_NAME}-cron"
     restart: unless-stopped
     working_dir: /var/www/html
     build:
@@ -175,8 +174,8 @@ services:
 
   supervisor:
     pull_policy: never
-    image: "${APP_NAME:-laravel}:supervisor"
-    container_name: "${APP_NAME:-laravel}-supervisor"
+    image: "${COMPOSE_PROJECT_NAME}:supervisor"
+    container_name: "${COMPOSE_PROJECT_NAME}-supervisor"
     restart: unless-stopped
     working_dir: /var/www/html
     build:
@@ -185,7 +184,7 @@ services:
       additional_contexts:
         php_image: "service:php"
     environment:
-      APP_NAME: ${APP_NAME:-laravel}
+      COMPOSE_PROJECT_NAME: ${COMPOSE_PROJECT_NAME}
       QUEUE_CONNECTION: ${QUEUE_CONNECTION:-database}
     healthcheck:
       test: ["CMD", "healthcheck.sh"]
@@ -206,8 +205,8 @@ services:
 
   node:
     pull_policy: never
-    image: "${APP_NAME:-laravel}:node"
-    container_name: "${APP_NAME:-laravel}-node"
+    image: "${COMPOSE_PROJECT_NAME}:node"
+    container_name: "${COMPOSE_PROJECT_NAME}-node"
     restart: no
     working_dir: /var/www/html
     profiles:
@@ -226,8 +225,8 @@ services:
 
   composer:
     pull_policy: never
-    image: "${APP_NAME:-laravel}:composer"
-    container_name: "${APP_NAME:-laravel}-composer"
+    image: "${COMPOSE_PROJECT_NAME}:composer"
+    container_name: "${COMPOSE_PROJECT_NAME}-composer"
     restart: no
     working_dir: /var/www/html
     profiles:
@@ -242,8 +241,8 @@ services:
 
   artisan:
     pull_policy: never
-    image: "${APP_NAME:-laravel}:artisan"
-    container_name: "${APP_NAME:-laravel}-artisan"
+    image: "${COMPOSE_PROJECT_NAME}:artisan"
+    container_name: "${COMPOSE_PROJECT_NAME}-artisan"
     restart: no
     working_dir: /var/www/html
     build:

@@ -4,11 +4,11 @@ set -e
 
 if [ "$PHPMYADMIN_ENABLED" != "true" ] || { [ "$DB_CONNECTION" != "mysql" ] && [ "$DB_CONNECTION" != "mariadb" ]; }; then
     while true; do
-        status="$(curl -s --unix-socket /var/run/docker.sock http://localhost/containers/${APP_NAME}-nginx/json | jq -r '.State.Status' 2>/dev/null)"
+        status="$(curl -s --unix-socket /var/run/docker.sock http://localhost/containers/${COMPOSE_PROJECT_NAME}-nginx/json | jq -r '.State.Status' 2>/dev/null)"
 
         [ "$status" = "running" ] && break
 
-        echo "Waiting for ${APP_NAME}-nginx to start"
+        echo "Waiting for ${COMPOSE_PROJECT_NAME}-nginx to start"
         
         sleep 1
     done
