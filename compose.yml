@@ -21,7 +21,7 @@ services:
     working_dir: /var/www/html
     network_mode: host
     build:
-      context: docker
+      context: .docker
       dockerfile: nginx/Dockerfile
       args:
         <<: *uid_gid
@@ -35,16 +35,16 @@ services:
       PHPMYADMIN_ENABLED: ${PHPMYADMIN_ENABLED:-true}
       DB_CONNECTION: ${DB_CONNECTION:-mysql}
     volumes:
-      - ./docker/nginx/cmd.sh:/usr/local/bin/cmd.sh:ro
-      - ./docker/nginx/default.conf:/etc/nginx/default.conf.template:ro
-      - ./docker/nginx/extra-hosts.sh:/docker-entrypoint.d/60-extra-hosts.sh:ro
+      - ./.docker/nginx/cmd.sh:/usr/local/bin/cmd.sh:ro
+      - ./.docker/nginx/default.conf:/etc/nginx/default.conf.template:ro
+      - ./.docker/nginx/extra-hosts.sh:/docker-entrypoint.d/60-extra-hosts.sh:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ./docker/nginx/phpmyadmin.sh:/docker-entrypoint.d/61-phpmyadmin.sh:ro
+      - ./.docker/nginx/phpmyadmin.sh:/docker-entrypoint.d/61-phpmyadmin.sh:ro
       - phpmyadmin:/var/www/phpmyadmin
-      - ./docker/nginx/ssl.sh:/docker-entrypoint.d/62-ssl.sh:ro
+      - ./.docker/nginx/ssl.sh:/docker-entrypoint.d/62-ssl.sh:ro
       - ${SSL_CERT_DIR:-ssl}:/etc/nginx/ssl:ro
       - ./:/var/www/html:delegated
-      - ./docker/nginx/healthcheck.sh:/usr/local/bin/healthcheck.sh:ro
+      - ./.docker/nginx/healthcheck.sh:/usr/local/bin/healthcheck.sh:ro
     healthcheck:
       test: ["CMD", "healthcheck.sh"]
       start_period: 5s
@@ -66,7 +66,7 @@ services:
     restart: unless-stopped
     working_dir: /var/www/html
     build:
-      context: docker
+      context: .docker
       dockerfile: php/Dockerfile
       args:
         <<: *uid_gid
@@ -75,9 +75,9 @@ services:
     environment:
       APP_ENV: ${APP_ENV:-local}
     volumes:
-      - ./docker/php/cmd.sh:/usr/local/bin/cmd.sh:ro
+      - ./.docker/php/cmd.sh:/usr/local/bin/cmd.sh:ro
       - ./:/var/www/html:delegated
-      - ./docker/php/healthcheck.sh:/usr/local/bin/healthcheck.sh:ro
+      - ./.docker/php/healthcheck.sh:/usr/local/bin/healthcheck.sh:ro
     healthcheck:
       test: ["CMD-SHELL", "healthcheck.sh"]
       start_period: 3s
@@ -96,7 +96,7 @@ services:
     restart: unless-stopped
     working_dir: /var/www/html
     build: 
-      context: docker
+      context: .docker
       dockerfile: db/${DB_CONNECTION:-sqlite}/Dockerfile
       args:
         <<: *uid_gid
@@ -117,7 +117,7 @@ services:
     container_name: "${COMPOSE_PROJECT_NAME}-phpmyadmin"
     restart: unless-stopped
     build: 
-      context: docker
+      context: .docker
       dockerfile: phpmyadmin/Dockerfile
       args:
         <<: *uid_gid
@@ -134,10 +134,10 @@ services:
       start_period: 5s
     volumes:
       - phpmyadmin:/var/www/html
-      - ./docker/phpmyadmin/cmd.sh:/usr/local/bin/cmd.sh:ro
+      - ./.docker/phpmyadmin/cmd.sh:/usr/local/bin/cmd.sh:ro
       - ./:/var/www/app:delegated
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ./docker/phpmyadmin/healthcheck.sh:/usr/local/bin/healthcheck.sh:ro
+      - ./.docker/phpmyadmin/healthcheck.sh:/usr/local/bin/healthcheck.sh:ro
     depends_on:
       db:
         condition: service_healthy
@@ -150,7 +150,7 @@ services:
     restart: unless-stopped
     working_dir: /var/www/html
     build:
-      context: docker
+      context: .docker
       dockerfile: cron/Dockerfile
       additional_contexts:
         php_image: "service:php"
@@ -163,11 +163,11 @@ services:
       timeout: 5s
       retries: 3
     volumes:
-      - ./docker/cron/cmd.sh:/usr/local/bin/cmd.sh:ro
+      - ./.docker/cron/cmd.sh:/usr/local/bin/cmd.sh:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ./docker/cron/crontab:/etc/crontabs/crontab:ro
+      - ./.docker/cron/crontab:/etc/crontabs/crontab:ro
       - ./:/var/www/html:delegated
-      - ./docker/cron/healthcheck.sh:/usr/local/bin/healthcheck.sh:ro
+      - ./.docker/cron/healthcheck.sh:/usr/local/bin/healthcheck.sh:ro
     depends_on:
       db:
         condition: service_healthy
@@ -180,7 +180,7 @@ services:
     restart: unless-stopped
     working_dir: /var/www/html
     build:
-      context: docker
+      context: .docker
       dockerfile: supervisor/Dockerfile
       additional_contexts:
         php_image: "service:php"
@@ -194,11 +194,11 @@ services:
       timeout: 2s
       retries: 3
     volumes:
-      - ./docker/supervisor/cmd.sh:/usr/local/bin/cmd.sh:ro
+      - ./.docker/supervisor/cmd.sh:/usr/local/bin/cmd.sh:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ./docker/supervisor/default.ini:/etc/supervisor.d/templates/default.ini.template:ro
+      - ./.docker/supervisor/default.ini:/etc/supervisor.d/templates/default.ini.template:ro
       - ./:/var/www/html:delegated
-      - ./docker/supervisor/healthcheck.sh:/usr/local/bin/healthcheck.sh:ro
+      - ./.docker/supervisor/healthcheck.sh:/usr/local/bin/healthcheck.sh:ro
     depends_on:
       db:
         condition: service_healthy
@@ -213,7 +213,7 @@ services:
     profiles:
       - tools
     build:
-      context: docker
+      context: .docker
       dockerfile: node/Dockerfile
       args:
         <<: *uid_gid
@@ -222,7 +222,7 @@ services:
       - ${VITE_PORT:-5173}:${VITE_PORT:-5173}
     volumes:
       - ./:/var/www/html:delegated
-      - ./docker/node/update-vite-config.sh:/usr/local/bin/update-vite-config.sh:ro
+      - ./.docker/node/update-vite-config.sh:/usr/local/bin/update-vite-config.sh:ro
 
   composer:
     pull_policy: never
@@ -233,7 +233,7 @@ services:
     profiles:
       - tools
     build:
-      context: docker
+      context: .docker
       dockerfile: composer/Dockerfile
       additional_contexts:
         php_image: "service:php"
@@ -247,7 +247,7 @@ services:
     restart: no
     working_dir: /var/www/html
     build:
-      context: docker
+      context: .docker
       dockerfile: artisan/Dockerfile
       additional_contexts:
         php_image: "service:php"

@@ -3,5 +3,5 @@
 !README.md
 !.env.example
 !compose.yml
-!docker
-!docker/**
+!.docker
+!.docker/**
