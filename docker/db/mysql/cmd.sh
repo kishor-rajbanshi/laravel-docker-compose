@@ -2,6 +2,12 @@
 
 set -e
 
+cmd_log() {
+    if [ -z "${DB_CMD_QUIET_LOGS:-}" ]; then
+        echo "$@"
+    fi
+}
+
 export MYSQL_DATABASE=${DB_DATABASE}
 
 if [ "$DB_USERNAME" = "root" ]; then
@@ -17,6 +23,7 @@ mkdir -p /var/db/mysql
 sed -i 's|^datadir=.*|datadir=/var/db/mysql|' /etc/my.cnf
 
 if [ -f /var/www/html/my.cnf ]; then
+    cmd_log "$0: info: Using my.cnf from $(pwd)."
     ln -sf /var/www/html/my.cnf /etc/mysql/my.cnf
 fi
 

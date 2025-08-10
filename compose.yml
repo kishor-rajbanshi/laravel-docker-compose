@@ -94,6 +94,7 @@ services:
     image: ${COMPOSE_PROJECT_NAME}:${DB_CONNECTION:-sqlite}
     container_name: ${COMPOSE_PROJECT_NAME}-${DB_CONNECTION:-sqlite}
     restart: unless-stopped
+    working_dir: /var/www/html
     build: 
       context: docker
       dockerfile: db/${DB_CONNECTION:-sqlite}/Dockerfile
@@ -103,8 +104,8 @@ services:
     environment:
       COMPOSE_PROJECT_NAME: ${COMPOSE_PROJECT_NAME}
       DB_DATABASE: ${DB_DATABASE:-laravel}
-      DB_USERNAME: ${DB_USERNAME:-laravel}
-      DB_PASSWORD: ${DB_PASSWORD:-laravel}
+      DB_USERNAME: ${DB_USERNAME:-root}
+      DB_PASSWORD: ${DB_PASSWORD:-secret}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ${DB_DATA_DIR:-db}:/var/db
