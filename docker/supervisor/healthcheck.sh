@@ -3,7 +3,7 @@
 set -e
 
 if ! pgrep -x supervisord > /dev/null; then
-  echo "❌ supervisord is not running"
+  echo "❌ Supervisord is not running"
   exit 1
 fi
 
