@@ -204,11 +204,17 @@ services:
         condition: service_healthy
         restart: true
 
+  install:
+    image: "krajbanshi/laravel-docker-compose:install"
+    profiles:
+      - install
+    build: 
+      context: .docker/install
+
   node:
     pull_policy: never
     image: "${COMPOSE_PROJECT_NAME}:node"
     container_name: "${COMPOSE_PROJECT_NAME}-node"
-    restart: no
     working_dir: /var/www/html
     profiles:
       - tools
@@ -228,7 +234,6 @@ services:
     pull_policy: never
     image: "${COMPOSE_PROJECT_NAME}:composer"
     container_name: "${COMPOSE_PROJECT_NAME}-composer"
-    restart: no
     working_dir: /var/www/html
     profiles:
       - tools
@@ -244,7 +249,6 @@ services:
     pull_policy: never
     image: "${COMPOSE_PROJECT_NAME}:artisan"
     container_name: "${COMPOSE_PROJECT_NAME}-artisan"
-    restart: no
     working_dir: /var/www/html
     build:
       context: .docker
