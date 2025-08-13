@@ -35,16 +35,10 @@ services:
       PHPMYADMIN_ENABLED: ${PHPMYADMIN_ENABLED:-true}
       DB_CONNECTION: ${DB_CONNECTION:-mysql}
     volumes:
-      - ./.docker/nginx/cmd.sh:/usr/local/bin/cmd.sh:ro
-      - ./.docker/nginx/default.conf:/etc/nginx/default.conf.template:ro
-      - ./.docker/nginx/extra-hosts.sh:/docker-entrypoint.d/60-extra-hosts.sh:ro
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ./.docker/nginx/phpmyadmin.sh:/docker-entrypoint.d/61-phpmyadmin.sh:ro
-      - phpmyadmin:/var/www/phpmyadmin
-      - ./.docker/nginx/ssl.sh:/docker-entrypoint.d/62-ssl.sh:ro
-      - ${SSL_CERT_DIR:-ssl}:/etc/nginx/ssl:ro
       - ./:/var/www/html:delegated
-      - ./.docker/nginx/healthcheck.sh:/usr/local/bin/healthcheck.sh:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - phpmyadmin:/var/www/phpmyadmin
+      - ${SSL_CERT_DIR:-ssl}:/etc/nginx/ssl:ro
     healthcheck:
       test: ["CMD", "healthcheck.sh"]
       start_period: 5s
