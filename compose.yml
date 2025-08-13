@@ -69,9 +69,7 @@ services:
     environment:
       APP_ENV: ${APP_ENV:-local}
     volumes:
-      - ./.docker/php/cmd.sh:/usr/local/bin/cmd.sh:ro
       - ./:/var/www/html:delegated
-      - ./.docker/php/healthcheck.sh:/usr/local/bin/healthcheck.sh:ro
     healthcheck:
       test: ["CMD-SHELL", "healthcheck.sh"]
       start_period: 3s
