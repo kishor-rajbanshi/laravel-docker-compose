@@ -5,7 +5,7 @@ COPY --chmod=0755 \
     cron/healthcheck.sh \
     /usr/local/bin/
 
-COPY --chmod=-644 cron/crontab /etc/crontabs/crontab
+COPY --chmod=0644 cron/crontab /etc/crontabs/crontab
 
 RUN apk update && apk add --no-cache tini
 
