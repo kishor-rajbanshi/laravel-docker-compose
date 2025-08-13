@@ -3,7 +3,11 @@ FROM phpmyadmin:fpm-alpine
 ARG USER_ID
 ARG GROUP_ID
 
-COPY permissions.sh /usr/local/bin/
+COPY --chmod=0755 \
+    permissions.sh \
+    /phpmyadmin/cmd.sh \
+    /phpmyadmin/healthcheck.sh \
+    /usr/local/bin/
 
 RUN apk update && apk add --no-cache fcgi jq
 
