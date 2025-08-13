@@ -5,9 +5,11 @@ FROM mysql:${DB_VERSION:-latest}
 ARG USER_ID
 ARG GROUP_ID
 
-COPY permissions.sh /usr/local/bin/
-COPY db/mysql/cmd.sh /usr/local/bin/
-COPY db/mysql/healthcheck.sh /usr/local/bin/
+COPY --chmod=0755 \
+    permissions.sh \
+    db/mysql/cmd.sh \
+    db/mysql/healthcheck.sh \
+    /usr/local/bin/
 
 RUN permissions.sh mysql
 
