@@ -212,7 +212,6 @@ services:
       - ${VITE_PORT:-5173}:${VITE_PORT:-5173}
     volumes:
       - ./:/var/www/html:delegated
-      - ./.docker/node/update-vite-config.sh:/usr/local/bin/update-vite-config.sh:ro
 
   composer:
     pull_policy: never

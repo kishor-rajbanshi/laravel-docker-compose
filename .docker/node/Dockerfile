@@ -5,7 +5,10 @@ FROM node:${NODE_VERSION:-current}-alpine
 ARG USER_ID
 ARG GROUP_ID
 
-COPY permissions.sh /usr/local/bin/
+COPY --chmod=0755 \
+    permissions.sh \
+    node/update-vite-config.sh \
+    /usr/local/bin/
 
 RUN permissions.sh node
 
