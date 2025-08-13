@@ -64,6 +64,8 @@ merge_env_files() {
 
     [ ! -f "$dest" ] && trap 'rm -rf "$dest"' ERR && cp "$src" "$dest" && return 0
 
+    [ "$(tail -n1 "$dest")" != "" ] && echo "" >>"$dest"
+
     while IFS= read -r line || [ -n "$line" ]; do
 
         if [ -z "$line" ]; then
@@ -82,6 +84,11 @@ merge_env_files() {
 
     sed -i 's/^# DB_HOST=.*/# DB_HOST=db/' "$dest"
     sed -i 's/^DB_HOST=.*/DB_HOST=db/' "$dest"
+
+    if grep -q '^DB_CONNECTION=sqlite' "$dest"; then
+        sed -i 's/^DB_DATABASE=laravel/# DB_DATABASE=laravel/' "$dest"
+    fi
+
 }
 
 merge_env_files "/tmp/laravel-docker-compose-$BRANCH/.env.example" "/app/.env.example"
