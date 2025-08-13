@@ -8,11 +8,14 @@ ARG GROUP_ID
 COPY --chmod=0755 \
     permissions.sh \
     nginx/cmd.sh \
+    nginx/healthcheck.sh \
+    /usr/local/bin/
+
+COPY --chmod=0755 \
     nginx/60-extra-hosts.sh \
     nginx/65-phpmyadmin.sh \
     nginx/70-ssl.sh \
-    nginx/healthcheck.sh \
-    /usr/local/bin/
+    /docker-entrypoint.d/
 
 COPY --chmod=0644 nginx/default.conf /etc/nginx/default.conf.template
 
