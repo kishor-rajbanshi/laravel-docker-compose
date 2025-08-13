@@ -6,6 +6,7 @@ ARG USER_ID
 ARG GROUP_ID
 
 COPY --chmod=0755 \
+    permissions.sh \
     nginx/cmd.sh \
     nginx/60-extra-hosts.sh \
     nginx/65-phpmyadmin.sh \
