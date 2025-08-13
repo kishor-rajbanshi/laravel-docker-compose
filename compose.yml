@@ -181,11 +181,8 @@ services:
       timeout: 2s
       retries: 3
     volumes:
-      - ./.docker/supervisor/cmd.sh:/usr/local/bin/cmd.sh:ro
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ./.docker/supervisor/default.ini:/etc/supervisor.d/templates/default.ini.template:ro
       - ./:/var/www/html:delegated
-      - ./.docker/supervisor/healthcheck.sh:/usr/local/bin/healthcheck.sh:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
     depends_on:
       db:
         condition: service_healthy
