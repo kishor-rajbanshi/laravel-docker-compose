@@ -94,7 +94,7 @@ jq -c \
                     directive: "server",
                     args: [],
                     block: (
-                        ($server.block | map(select(.directive == "listen"))) +
+                        ($server.block | map(select(.directive == "listen" and (.args[0] | startswith("unix:") | not)))) +
                         ($server.block | map(select(.directive == "server_name") | {directive, args})) +
                         [{directive: "return", args: ["301", "https://$host$request_uri"]}]
                     )
@@ -128,10 +128,7 @@ jq -c \
                         )
                         +
                         (if any(.[]; .directive == "listen") | not then
-                            [{
-                                directive: "listen",
-                                args: [($ssl_port // $NGINX_SSL_PORTS), "ssl"]
-                            }]
+                            [{ directive: "listen", args: [($ssl_port // $NGINX_SSL_PORTS), "ssl"] }]
                         else [] end)
                         +
                         (if any(.[]; .directive == "ssl_certificate") | not then
