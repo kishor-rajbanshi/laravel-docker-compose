@@ -16,10 +16,10 @@ filters=$(jq -nc --arg compose_project_name "$COMPOSE_PROJECT_NAME" \
 containers=$(curl -s --unix-socket /var/run/docker.sock \
     "http://localhost/containers/json?filters=$filters")
 
-echo "" >>/etc/hosts
+echo -e "\n" >>/etc/hosts
 
-echo "$containers" | \
-    jq -r '.[] | .Labels["com.docker.compose.service"] + " " + .NetworkSettings.Networks[].IPAddress' | \
+echo "$containers" |
+    jq -r '.[] | .Labels["com.docker.compose.service"] + " " + .NetworkSettings.Networks[].IPAddress' |
     while read -r line; do
         service_name=$(echo "$line" | awk '{print $1}')
         ip=$(echo "$line" | awk '{print $2}')
