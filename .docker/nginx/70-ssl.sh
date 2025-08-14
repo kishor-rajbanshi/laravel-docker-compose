@@ -34,7 +34,7 @@ jq -c \
 
     server_name=$(echo "$server" | jq -r '.block[] | select(.directive == "server_name") | .args | join(" ")')
 
-    cmd_log "$me: info: Searching for certificate associated with \"$server_name\""
+    cmd_log "$me: info: Searching for SSL certificate associated with \"$server_name\""
 
     for cert in "$cert_dir"/*.pem "$cert_dir"/*.crt; do
         cert_domains=$(openssl x509 -in "$cert" -noout -text 2>/dev/null | awk '
@@ -82,6 +82,11 @@ jq -c \
             continue
         }
 
+        chown nginx:nginx $cert
+        chown nginx:nginx $key
+        chmod 644 $cert
+        chmod 600 $key
+
         json_conf_file_=$(mktemp)
         
         jq --argjson server "$server" \
@@ -114,10 +119,22 @@ jq -c \
 
                     | .block |= (
                         map(
-                            if .directive == "listen" and (.args[0] | startswith("[::]:")) then
-                                .args = ["[::]:" + ($ssl_port // $NGINX_SSL_PORTS), "ssl"]
-                            elif .directive == "listen" then
-                                .args = [($ssl_port // $NGINX_SSL_PORTS), "ssl"]
+                            if .directive == "listen" then
+                                if (.args[0] | startswith("unix:")) then
+                                    .
+                                elif (.args[0] | test("^[0-9]+$")) then
+                                    .args[0] = ($ssl_port // $NGINX_SSL_PORTS)
+                                else
+                                    .args[0] as $a0
+                                    | ($a0 | split(":")) as $parts
+                                    | ($parts | if length>0 then .[-1] else "" end | test("^[0-9]+$")) as $last_is_num
+                                    | if $last_is_num then
+                                        .args[0] = (($parts[0:-1] | join(":")) + ":" + ($ssl_port // $NGINX_SSL_PORTS))
+                                    else
+                                        .args[0] = ($a0 + ":" + ($ssl_port // $NGINX_SSL_PORTS))
+                                    end
+                                end
+                                # | .args = [.args[0]] + ((.args[1:] // []) | map(select(. != "ssl")) + ["ssl"])
                             elif .directive == "ssl_certificate" then
                                 .args = [$cert]
                             elif .directive == "ssl_certificate_key" then
@@ -137,6 +154,14 @@ jq -c \
                         +
                         (if any(.[]; .directive == "ssl_certificate_key") | not then
                             [{"directive": "ssl_certificate_key", "args": [$key]}]
+                        else [] end)
+                        +
+                        (if any(.[]; .directive == "ssl_protocols") | not then
+                            [{"directive": "ssl_protocols", "args": ["TLSv1.2", "TLSv1.3"]}]
+                        else [] end)
+                        +
+                        (if any(.[]; .directive == "ssl_ciphers") | not then
+                            [{"directive": "ssl_ciphers", "args": ["HIGH:!aNULL:!MD5"]}]
                         else [] end)
                     )
                 else
