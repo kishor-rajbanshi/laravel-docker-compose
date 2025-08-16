@@ -4,6 +4,7 @@ set -e
 
 conf_file="/etc/nginx/nginx.conf"
 cert_dir="/etc/nginx/ssl"
+server_map="/acme/server.map"
 
 me=$(basename "$0")
 
@@ -165,6 +166,10 @@ jq -c '.config[].parsed[] | select(.directive == "server")' "$json_conf_file" |
 
             continue 2
         done
+
+        root=$(echo "$server" | jq -r '.block[] | select(.directive=="root") | .args[0]')
+
+        [ "$server_name" != "_" ] && echo "$server_name => $root" >>$server_map
 
         cmd_log "$me: warning: Certificate or key associated with \"$server_name\" not found, skipping configuration"
     done
