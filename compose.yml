@@ -12,6 +12,9 @@ volumes:
   ssl:
     name: ${COMPOSE_PROJECT_NAME}_ssl
 
+  acme:
+    name: ${COMPOSE_PROJECT_NAME}_acme
+
 services:
   nginx:
     pull_policy: never
@@ -185,6 +188,24 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     depends_on:
       db:
+        condition: service_healthy
+        restart: true
+      
+  acme:
+    pull_policy: never
+    image: "${COMPOSE_PROJECT_NAME}:acme"
+    container_name: "${COMPOSE_PROJECT_NAME}-acme"
+    restart: unless-stopped
+    build: 
+      context: .docker/acme
+      args:
+        <<: *uid_gid
+    volumes:
+      - ./:/var/www/html:delegated
+      - acme:/acme.sh
+      - ${SSL_DIR:-ssl}:/ssl:delegated
+    depends_on:
+      nginx:
         condition: service_healthy
         restart: true
 
