@@ -3,7 +3,7 @@
 set -e
 
 conf_file="/etc/nginx/nginx.conf"
-cert_dir="/etc/nginx/ssl"
+ssl_dir="/etc/nginx/ssl"
 server_map="/acme/server.map"
 
 me=$(basename "$0")
@@ -14,12 +14,12 @@ cmd_log() {
     fi
 }
 
-if [ -z "$(ls -A $cert_dir)" ]; then
-    cmd_log "$me: info: $cert_dir is empty, skipping configuration"
+if [ -z "$(ls -A $ssl_dir)" ]; then
+    cmd_log "$me: info: $ssl_dir is empty, skipping configuration"
     exit 0
 fi
 
-cmd_log "$me: info: $cert_dir is not empty, will attempt to perform configuration"
+cmd_log "$me: info: $ssl_dir is not empty, will attempt to perform configuration"
 
 . /opt/venv/bin/activate
 
@@ -34,7 +34,7 @@ jq -c '.config[].parsed[] | select(.directive == "server")' "$json_conf_file" |
 
         cmd_log "$me: info: Searching for SSL certificate associated with \"$server_name\""
 
-        for cert in "$cert_dir"/*; do
+        for cert in "$ssl_dir"/*; do
             cert_domains=$(openssl x509 -in "$cert" -noout -text 2>/dev/null | awk '
                 /X509v3 Subject Alternative Name/ {
                     getline
@@ -66,7 +66,7 @@ jq -c '.config[].parsed[] | select(.directive == "server")' "$json_conf_file" |
 
             cert_has_key=0
 
-            for key in "$cert_dir"/*; do
+            for key in "$ssl_dir"/*; do
                 key_pubkey="$({ openssl pkey -in "$key" -pubout -outform PEM 2>/dev/null || true; })"
 
                 if [ "x$cert_pubkey" = "x$key_pubkey" ]; then
