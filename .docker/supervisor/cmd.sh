@@ -18,7 +18,7 @@ cmd_log "$0: info: Running envsubst on /etc/supervisor.d/templates/default.ini.t
 envsubst < /etc/supervisor.d/templates/default.ini.template > /etc/supervisor.d/default.ini
 
 if [ -f /var/www/html/supervisor.ini ]; then
-    cmd_log "$0: info: Using supervisor.ini from $(pwd)."
+    cmd_log "$0: info: Using supervisor.ini from $(pwd)"
     cmd_log "$0: info: Running envsubst on /var/www/html/supervisor.ini to /etc/supervisor.d/supervisor.ini"
     envsubst < /var/www/html/supervisor.ini > /etc/supervisor.d/supervisor.ini
 fi
