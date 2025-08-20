@@ -23,8 +23,8 @@ if [ "$PHPMYADMIN_ENABLED" != "true" ] || { [ "$DB_CONNECTION" != "mysql" ] && [
 fi
 
 if [ -f /var/www/app/config.inc.php ]; then
-    cmd_log "$0: info: Using config.inc.php from /var/www/app/."
-    
+    cmd_log "$0: info: Using config.inc.php from /var/www/app/"
+
     mkdir -p /etc/phpmyadmin/conf.d
 
     ln -sf /var/www/app/config.inc.php /etc/phpmyadmin/conf.d/
