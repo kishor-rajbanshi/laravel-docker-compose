@@ -200,10 +200,13 @@ services:
       context: .docker/acme
       args:
         <<: *uid_gid
+    environment:
+      COMPOSE_PROJECT_NAME: ${COMPOSE_PROJECT_NAME}
     volumes:
       - ./:/var/www/html:delegated
       - acme:/acme.sh
       - ${SSL_DIR:-ssl}:/ssl:delegated
+      - /var/run/docker.sock:/var/run/docker.sock:ro
     depends_on:
       nginx:
         condition: service_healthy
