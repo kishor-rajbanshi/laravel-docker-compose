@@ -23,7 +23,7 @@ mkdir -p /var/db/mysql
 sed -i 's|^datadir=.*|datadir=/var/db/mysql|' /etc/my.cnf
 
 if [ -f /var/www/html/my.cnf ]; then
-    cmd_log "$0: info: Using my.cnf from $(pwd)."
+    cmd_log "$0: info: Using my.cnf from $(pwd)"
     ln -sf /var/www/html/my.cnf /etc/mysql/my.cnf
 fi
 

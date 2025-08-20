@@ -23,7 +23,7 @@ mkdir -p /var/db/mariadb
 echo "[mariadbd]\ndatadir=/var/db/mariadb" >/etc/mysql/mariadb.conf.d/datadir.cnf
 
 if [ -f /var/www/html/mariadb.cnf ]; then
-    cmd_log "$0: info: Using mariadb.cnf from $(pwd)."
+    cmd_log "$0: info: Using mariadb.cnf from $(pwd)"
     ln -sf /var/www/html/mariadb.cnf /etc/mysql/mariadb.conf.d/
 fi
 
