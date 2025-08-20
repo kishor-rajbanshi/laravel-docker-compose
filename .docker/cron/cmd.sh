@@ -13,10 +13,10 @@ if [ "$CRON_ENABLED" != "true" ]; then
 fi
 
 if [ -f /var/www/html/crontab ]; then
-    cmd_log "$0: info: Using crontab from $(pwd)."
+    cmd_log "$0: info: Using crontab from $(pwd)"
     ln -sf /var/www/html/crontab /etc/crontabs/www-data
 else
-    cmd_log "$0: info: Using default crontab."
+    cmd_log "$0: info: Using default crontab"
     ln -sf /etc/crontabs/crontab /etc/crontabs/www-data
 fi
 
