@@ -61,7 +61,7 @@ has_position=$(
 json_conf_file_=$(mktemp)
 
 if [ "$has_position" = true ]; then
-    cmd_log "$me: info: Detected phpMyAdmin include directive. Injecting configuration as specified."
+    cmd_log "$me: info: Detected phpMyAdmin include directive. Injecting configuration as specified"
 
     jq --argjson phpmyadmin_block "$phpmyadmin_block" '
         .config[].parsed[] |= (
@@ -73,7 +73,7 @@ if [ "$has_position" = true ]; then
         )
     ' <"$json_conf_file" >"$json_conf_file_" && mv -f $json_conf_file_ $json_conf_file
 else
-    cmd_log "$me: info: Appending configuration to the first server block."
+    cmd_log "$me: info: Appending configuration to the first server block"
 
     jq --argjson phpmyadmin_block "$phpmyadmin_block" '
         .config[].parsed |=(

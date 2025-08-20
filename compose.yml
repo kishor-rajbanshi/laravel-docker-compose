@@ -37,8 +37,8 @@ services:
     volumes:
       - ./:/var/www/html:delegated
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - phpmyadmin:/var/www/phpmyadmin
-      - ${SSL_DIR:-ssl}:/etc/nginx/ssl:ro
+      - phpmyadmin:/var/www/phpmyadmin:ro
+      - ${SSL_DIR:-ssl}:/etc/nginx/ssl:delegated
     healthcheck:
       test: ["CMD", "healthcheck.sh"]
       start_period: 5s

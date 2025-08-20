@@ -25,7 +25,7 @@ echo "$containers" |
         ip=$(echo "$line" | awk '{print $2}')
 
         if [ -n "$ip" ] && [ -n "$service_name" ]; then
-            cmd_log "$me: info: Adding $service_name → $ip to /etc/hosts"
+            cmd_log "$me: info: Adding \"$service_name $ip\" to /etc/hosts"
             echo "$ip $service_name" >>/etc/hosts
         fi
     done
