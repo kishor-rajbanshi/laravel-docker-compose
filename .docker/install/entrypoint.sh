@@ -11,17 +11,17 @@ entrypoint_log() {
 url="https://github.com/kishor-rajbanshi/laravel-docker-compose.git"
 
 if [ ! -d "/app" ]; then
-    entrypoint_log "$0: Error: Required volume not mounted. Aborting."
+    entrypoint_log "$0: Error: Required volume not mounted. Aborting"
     exit 1
 fi
 
 if [ -d "/app/.docker" ] && [ "$(ls -A /app/.docker 2>/dev/null || true)" ]; then
-    entrypoint_log "$0: Error: target .docker exists and is not empty. Aborting."
+    entrypoint_log "$0: Error: target .docker exists and is not empty. Aborting"
     exit 1
 fi
 
 if [ -f "/app/compose.yml" ] || [ -f "/app/docker-compose.yml" ]; then
-    entrypoint_log "$0: Error: compose.yml or docker-compose.yml already exists. Aborting."
+    entrypoint_log "$0: Error: compose.yml or docker-compose.yml already exists. Aborting"
     exit 1
 fi
 
@@ -40,7 +40,7 @@ unzip -q "/tmp/laravel-docker-compose.zip" -d "/tmp"
 
 trap 'rm -rf /app/.docker' ERR
 mkdir -p "/app/.docker" || {
-    entrypoint_log "$0: Error: Could not create .docker directory."
+    entrypoint_log "$0: Error: Could not create .docker directory"
     false
     exit 1
 }
