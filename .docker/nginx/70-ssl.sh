@@ -2,9 +2,7 @@
 
 set -e
 
-conf_file="/etc/nginx/nginx.conf"
 ssl_dir="/etc/nginx/ssl"
-
 me=$(basename "$0")
 
 cmd_log() {
@@ -24,12 +22,17 @@ cmd_log "$me: info: $ssl_dir is not empty, will attempt to perform configuration
 
 json_conf_file=$(mktemp)
 
-crossplane parse "$conf_file" -o "$json_conf_file"
+crossplane parse "$NGINX_MAIN_CONF" -o "$json_conf_file"
 
 jq -c '.config[].parsed[] | select(.directive == "server")' "$json_conf_file" |
     while read -r server; do
 
         server_name=$(echo "$server" | jq -r '.block[] | select(.directive == "server_name") | .args | join(" ")')
+
+        [ "$server_name" = "_" ] && {
+            cmd_log "$me: info: server_name is \"$server_name\", skipping configuration"
+            continue
+        }
 
         cmd_log "$me: info: Searching for SSL certificate associated with \"$server_name\""
 
@@ -168,7 +171,7 @@ jq -c '.config[].parsed[] | select(.directive == "server")' "$json_conf_file" |
 
         root=$(echo "$server" | jq -r '.block[] | select(.directive=="root") | .args[0]')
 
-        [ "$server_name" != "_" ] && echo "$server_name => $root" >>$ssl_dir/server.map
+        echo "$server_name => $root" >>$ssl_dir/server.map
 
         cmd_log "$me: warning: Certificate or key associated with \"$server_name\" not found, skipping configuration"
     done

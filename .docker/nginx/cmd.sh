@@ -2,6 +2,10 @@
 
 set -e
 
+template_name=default.conf.template
+templates_dir=/etc/nginx/templates
+nginx_user_conf_template=/var/www/html/nginx.conf
+
 cmd_log() {
     if [ -z "${NGINX_CMD_QUIET_LOGS:-}" ]; then
         echo "$@"
@@ -14,14 +18,14 @@ i=1; for port in $NGINX_PORTS; do export PORT_$i="$port"; i=$((i + 1)); done
 
 i=1; for ssl_port in $NGINX_SSL_PORTS; do export SSL_PORT_$i="$ssl_port"; i=$((i + 1)); done
 
-mkdir -p /etc/nginx/templates
+mkdir -p $templates_dir
 
-if [ -f /var/www/html/nginx.conf ]; then
-    cmd_log "$0: Using nginx.conf from $(pwd)"
-    ln -sf /var/www/html/nginx.conf /etc/nginx/templates/default.conf.template
+if [ -f $nginx_user_conf_template ]; then
+    cmd_log "$0: Using $nginx_user_conf_template"
+    ln -sf $nginx_user_conf_template $templates_dir/$template_name
 else
-    cmd_log "$0: No nginx.conf found in $(pwd) — using default configuration"
-    ln -sf /etc/nginx/default.conf.template /etc/nginx/templates/default.conf.template
+    cmd_log "$0: No $nginx_user_conf_template found — using default configuration"
+    ln -sf $NGINX_DEFAULT_CONF_TEMPLATE $templates_dir/$template_name
 fi
 
 if [ "${APP_DEBUG}" = "true" ] && command -v nginx-debug >/dev/null; then
