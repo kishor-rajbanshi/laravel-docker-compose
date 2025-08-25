@@ -44,13 +44,13 @@ phpmyadmin_block='{
     ]
 }'
 
-json_conf_file=$(mktemp)
-
 . /opt/venv/bin/activate
 
-crossplane parse /etc/nginx/nginx.conf > $json_conf_file
+json_conf_file=$(mktemp)
 
-has_position=$(
+crossplane parse $NGINX_MAIN_CONF > $json_conf_file
+
+include_phpmyadmin=$(
     cat $json_conf_file | jq '[.config[].parsed[]
         | select(.directive=="server")
         | .block[]?
@@ -60,7 +60,7 @@ has_position=$(
 
 json_conf_file_=$(mktemp)
 
-if [ "$has_position" = true ]; then
+if [ "$include_phpmyadmin" = true ]; then
     cmd_log "$me: info: Detected phpMyAdmin include directive. Injecting configuration as specified"
 
     jq --argjson phpmyadmin_block "$phpmyadmin_block" '

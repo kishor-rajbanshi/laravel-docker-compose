@@ -2,9 +2,8 @@
 
 set -e
 
-conf_file="/etc/nginx/nginx.conf"
 ssl_dir="/etc/nginx/ssl"
-
+server_map="$ssl_dir/server.map"
 me=$(basename "$0")
 
 cmd_log() {
@@ -24,12 +23,24 @@ cmd_log "$me: info: $ssl_dir is not empty, will attempt to perform configuration
 
 json_conf_file=$(mktemp)
 
-crossplane parse "$conf_file" -o "$json_conf_file"
+crossplane parse "$NGINX_MAIN_CONF" -o "$json_conf_file"
 
 jq -c '.config[].parsed[] | select(.directive == "server")' "$json_conf_file" |
     while read -r server; do
 
         server_name=$(echo "$server" | jq -r '.block[] | select(.directive == "server_name") | .args | join(" ")')
+
+        [ "$server_name" = "_" ] && {
+            cmd_log "$me: info: server_name is \"$server_name\", skipping configuration"
+            continue
+        }
+
+        include_no_ssl=$(echo "$server" | jq -r '[.block[] | select(.directive=="include" and .args[0] == "*no_ssl")] | any')
+
+        [ "$include_no_ssl" = true ] && {
+            cmd_log "$me: info: *no_ssl included for \"$server_name\", skipping configuration"
+            continue
+        }
 
         cmd_log "$me: info: Searching for SSL certificate associated with \"$server_name\""
 
@@ -81,11 +92,23 @@ jq -c '.config[].parsed[] | select(.directive == "server")' "$json_conf_file" |
 
             json_conf_file_=$(mktemp)
 
+            ssl_port=$(echo $server | jq -r '
+                .block[]
+                | select(.directive == "include" and (.args[0] | test("^ssl_port\\*\\d+")))
+                | .args[0]
+                | sub("^ssl_port\\*"; "")
+            ')
+
+            [ -n "$ssl_port" ] && {
+                cmd_log "$me: info: Using ssl port \"$ssl_port\" for \"$server_name\""
+            }
+
             jq \
                 --argjson server "$server" \
                 --arg cert "$cert" \
                 --arg key "$key" \
-                --arg NGINX_SSL_PORTS "$NGINX_SSL_PORTS" '
+                --arg NGINX_SSL_PORTS "$NGINX_SSL_PORTS" \
+                --arg ssl_port "$ssl_port" '
                 .config |= map(
                     if any(.parsed[]; .block == $server.block) then
                         .parsed |= ([{
@@ -104,27 +127,21 @@ jq -c '.config[].parsed[] | select(.directive == "server")' "$json_conf_file" |
                 | .config |= map(
                     .parsed |= map(
                         if .block == $server.block then
-                            ([
-                                .block[]
-                                | select(.directive == "include" and (.args[0] | test("^ssl_port\\*\\d+")))
-                                | .args[0] | sub("^ssl_port\\*"; "")
-                            ] | first) as $ssl_port
-
-                            | .block |= (
+                            .block |= (
                                 map(
                                     if .directive == "listen" then
                                         if (.args[0] | startswith("unix:")) then
                                             .
                                         elif (.args[0] | test("^[0-9]+$")) then
-                                            .args[0] = ($ssl_port // $NGINX_SSL_PORTS)
+                                            .args[0] = ($ssl_port | select(length > 0) // $NGINX_SSL_PORTS)
                                         else
                                             .args[0] as $a0
                                             | ($a0 | split(":")) as $parts
                                             | ($parts | if length>0 then .[-1] else "" end | test("^[0-9]+$")) as $last_is_num
                                             | if $last_is_num then
-                                                .args[0] = (($parts[0:-1] | join(":")) + ":" + ($ssl_port // $NGINX_SSL_PORTS))
+                                                .args[0] = (($parts[0:-1] | join(":")) + ":" + ($ssl_port | select(length > 0) // $NGINX_SSL_PORTS))
                                             else
-                                                .args[0] = ($a0 + ":" + ($ssl_port // $NGINX_SSL_PORTS))
+                                                .args[0] = ($a0 + ":" + ($ssl_port | select(length > 0) // $NGINX_SSL_PORTS))
                                             end
                                         end
                                         | .args = [.args[0]] + ((.args[1:] // []) | map(select(. != "ssl")) + ["ssl"])
@@ -138,7 +155,7 @@ jq -c '.config[].parsed[] | select(.directive == "server")' "$json_conf_file" |
                                 )
                                 +
                                 (if any(.[]; .directive == "listen") | not then
-                                    [{ directive: "listen", args: [($ssl_port // $NGINX_SSL_PORTS), "ssl"] }]
+                                    [{ directive: "listen", args: [($ssl_port | select(length > 0) // $NGINX_SSL_PORTS), "ssl"] }]
                                 else [] end)
                                 +
                                 (if any(.[]; .directive == "ssl_certificate") | not then
@@ -168,7 +185,7 @@ jq -c '.config[].parsed[] | select(.directive == "server")' "$json_conf_file" |
 
         root=$(echo "$server" | jq -r '.block[] | select(.directive=="root") | .args[0]')
 
-        [ "$server_name" != "_" ] && echo "$server_name => $root" >>$ssl_dir/server.map
+        echo "$server_name => $root" >>"$server_map"
 
         cmd_log "$me: warning: Certificate or key associated with \"$server_name\" not found, skipping configuration"
     done
