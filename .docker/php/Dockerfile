@@ -18,7 +18,6 @@ ADD --chmod=0755 \
 
 RUN apk update && apk add --no-cache fcgi
 
-
 RUN if [ -n "${PHP_EXTENSIONS}" ]; then \
         install-php-extensions ${PHP_EXTENSIONS}; \
     fi
