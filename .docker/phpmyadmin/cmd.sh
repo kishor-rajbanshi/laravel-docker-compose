@@ -2,6 +2,9 @@
 
 set -e
 
+user_conf="/var/www/app/config.inc.php"
+conf_dir="/etc/phpmyadmin/conf.d/"
+
 cmd_log() {
     if [ -z "${PHPMYADMIN_CMD_QUIET_LOGS:-}" ]; then
         echo "$@"
@@ -22,12 +25,12 @@ if [ "$PHPMYADMIN_ENABLED" != "true" ] || { [ "$DB_CONNECTION" != "mysql" ] && [
     curl -s -X DELETE --unix-socket /var/run/docker.sock "http://localhost/containers/$(hostname)?force=true"
 fi
 
-if [ -f /var/www/app/config.inc.php ]; then
-    cmd_log "$0: info: Using config.inc.php from /var/www/app/"
+if [ -f "$user_conf" ]; then
+    cmd_log "$0: info: Using $user_conf"
 
-    mkdir -p /etc/phpmyadmin/conf.d
+    mkdir -p "$conf_dir"
 
-    ln -sf /var/www/app/config.inc.php /etc/phpmyadmin/conf.d/
+    ln -sf "$user_conf" "$conf_dir"
 fi
 
 /docker-entrypoint.sh php-fpm
