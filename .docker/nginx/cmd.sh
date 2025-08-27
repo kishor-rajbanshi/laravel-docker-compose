@@ -4,7 +4,7 @@ set -e
 
 template_name=default.conf.template
 templates_dir=/etc/nginx/templates
-nginx_user_conf_template=/var/www/html/nginx.conf
+user_conf_template=/var/www/html/nginx.conf
 
 cmd_log() {
     if [ -z "${NGINX_CMD_QUIET_LOGS:-}" ]; then
@@ -20,11 +20,11 @@ i=1; for ssl_port in $NGINX_SSL_PORTS; do export SSL_PORT_$i="$ssl_port"; i=$((i
 
 mkdir -p $templates_dir
 
-if [ -f $nginx_user_conf_template ]; then
-    cmd_log "$0: Using $nginx_user_conf_template"
-    ln -sf $nginx_user_conf_template $templates_dir/$template_name
+if [ -f $user_conf_template ]; then
+    cmd_log "$0: Using $user_conf_template"
+    ln -sf $user_conf_template $templates_dir/$template_name
 else
-    cmd_log "$0: No $nginx_user_conf_template found — using default configuration"
+    cmd_log "$0: No $user_conf_template found — using default configuration"
     ln -sf $NGINX_DEFAULT_CONF_TEMPLATE $templates_dir/$template_name
 fi
 
