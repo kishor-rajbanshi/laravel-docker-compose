@@ -2,6 +2,10 @@
 
 set -e
 
+data_dir="/var/db/mariadb/"
+conf_dir="/etc/mysql/mariadb.conf.d/"
+user_conf="/var/www/html/mariadb.cnf"
+
 cmd_log() {
     if [ -z "${DB_CMD_QUIET_LOGS:-}" ]; then
         echo "$@"
@@ -18,13 +22,13 @@ else
     export MARIADB_PASSWORD=${DB_PASSWORD}
 fi
 
-mkdir -p /var/db/mariadb
+mkdir -p $data_dir
 
-echo "[mariadbd]\ndatadir=/var/db/mariadb" >/etc/mysql/mariadb.conf.d/datadir.cnf
+echo "[mariadbd]\ndatadir=$data_dir" >$conf_dir/datadir.cnf
 
-if [ -f /var/www/html/mariadb.cnf ]; then
-    cmd_log "$0: info: Using mariadb.cnf from $(pwd)"
-    ln -sf /var/www/html/mariadb.cnf /etc/mysql/mariadb.conf.d/
+if [ -f "$user_conf" ]; then
+    cmd_log "$0: info: Using $user_conf"
+    ln -sf "$user_conf" "$conf_dir"
 fi
 
 docker-entrypoint.sh mariadbd

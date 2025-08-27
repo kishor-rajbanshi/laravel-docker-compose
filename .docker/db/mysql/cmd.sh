@@ -2,6 +2,10 @@
 
 set -e
 
+user_conf="/var/www/html/my.cnf"
+data_dir="/var/db/mysql/"
+conf_dir="/etc/mysql/"
+
 cmd_log() {
     if [ -z "${DB_CMD_QUIET_LOGS:-}" ]; then
         echo "$@"
@@ -18,13 +22,13 @@ else
     export MYSQL_PASSWORD=${DB_PASSWORD}
 fi
 
-mkdir -p /var/db/mysql
+mkdir -p "$data_dir"
 
-sed -i 's|^datadir=.*|datadir=/var/db/mysql|' /etc/my.cnf
+sed -i "s|^datadir=.*|datadir=$data_dir|" "$MYSQL_MAIN_CONF"
 
-if [ -f /var/www/html/my.cnf ]; then
-    cmd_log "$0: info: Using my.cnf from $(pwd)"
-    ln -sf /var/www/html/my.cnf /etc/mysql/my.cnf
+if [ -f "$user_conf" ]; then
+    cmd_log "$0: info: Using $user_conf"
+    ln -sf "$user_conf" "$conf_dir"
 fi
 
 docker-entrypoint.sh mysqld
