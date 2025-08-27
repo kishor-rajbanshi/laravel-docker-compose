@@ -6,8 +6,8 @@ if ! pgrep -x crond > /dev/null; then
   exit 1
 fi
 
-if ! crontab -u www-data -l | grep . -q /etc/crontabs/www-data; then
-  echo "❌ Expected cron job file (/etc/crontabs/www-data) is not installed"
+if ! crontab -u www-data -l | grep . -q "$WWW_DATA_CRONTAB"; then
+  echo "❌ Expected cron job file ($WWW_DATA_CRONTAB) is not installed"
   exit 1
 fi
 

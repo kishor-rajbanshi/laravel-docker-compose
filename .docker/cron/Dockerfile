@@ -5,7 +5,10 @@ COPY --chmod=0755 \
     cron/healthcheck.sh \
     /usr/local/bin/
 
-COPY --chmod=0644 cron/crontab /etc/crontabs/crontab
+ENV DEFAULT_CRONTAB=/etc/crontabs/crontab
+ENV WWW_DATA_CRONTAB=/etc/crontabs/www-data
+
+COPY --chmod=0644 cron/crontab $DEFAULT_CRONTAB
 
 RUN apk update && apk add --no-cache tini
 
