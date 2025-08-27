@@ -171,8 +171,9 @@ services:
       dockerfile: supervisor/Dockerfile
       additional_contexts:
         php_image: "service:php"
+      args:
+        COMPOSE_PROJECT_NAME: ${COMPOSE_PROJECT_NAME}
     environment:
-      COMPOSE_PROJECT_NAME: ${COMPOSE_PROJECT_NAME}
       QUEUE_CONNECTION: ${QUEUE_CONNECTION:-database}
     healthcheck:
       test: ["CMD", "healthcheck.sh"]
