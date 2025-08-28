@@ -2,7 +2,7 @@
 
 set -e
 
-extra_hosts=/etc/hosts
+extra_hosts="/etc/hosts"
 me=$(basename "$0")
 
 cmd_log() {
@@ -11,13 +11,13 @@ cmd_log() {
     fi
 }
 
-filters=$(jq -nc --arg compose_project_name "$COMPOSE_PROJECT_NAME" \
+filters=$(jq -nc --arg compose_project_name "${COMPOSE_PROJECT_NAME}" \
     '{"label": ["com.docker.compose.project=" + $compose_project_name]}' | jq -sRr @uri)
 
 containers=$(curl -s --unix-socket /var/run/docker.sock \
     "http://localhost/containers/json?filters=$filters")
 
-echo -e "\n" >>$extra_hosts
+echo -e "\n" >>"$extra_hosts"
 
 echo "$containers" |
     jq -r '.[] | .Labels["com.docker.compose.service"] + " " + .NetworkSettings.Networks[].IPAddress' |
@@ -26,7 +26,7 @@ echo "$containers" |
         ip=$(echo "$line" | awk '{print $2}')
 
         if [ -n "$ip" ] && [ -n "$service_name" ]; then
-            cmd_log "$me: info: Adding \"$service_name $ip\" to $extra_hosts"
-            echo "$ip $service_name" >>$extra_hosts
+            cmd_log "${me}: info: Adding \"$ip $service_name\" to $extra_hosts"
+            echo "$ip $service_name" >>"$extra_hosts"
         fi
     done

@@ -11,11 +11,11 @@ cmd_log() {
 }
 
 if [ "$PHPMYADMIN_ENABLED" != "true" ] || { [ "$DB_CONNECTION" != "mysql" ] && [ "$DB_CONNECTION" != "mariadb" ]; }; then
-    cmd_log "$me: info: Skipping phpmyadmin - not enabled or unsupported database"
+    cmd_log "${me}: info: Skipping phpmyadmin - not enabled or unsupported database"
     exit 0
 fi
 
-cmd_log "$me: info: Setting up phpmyadmin"
+cmd_log "${me}: info: Setting up phpmyadmin"
 
 phpmyadmin_block='{
     "directive": "location",
@@ -48,10 +48,10 @@ phpmyadmin_block='{
 
 json_conf_file=$(mktemp)
 
-crossplane parse $NGINX_MAIN_CONF > $json_conf_file
+crossplane parse "$NGINX_CONF_FILE" > "$json_conf_file"
 
 include_phpmyadmin=$(
-    cat $json_conf_file | jq '[.config[].parsed[]
+    cat "$json_conf_file" | jq '[.config[].parsed[]
         | select(.directive=="server")
         | .block[]?
         | select(.directive=="include" and .args[0] == "*phpmyadmin")
@@ -61,7 +61,7 @@ include_phpmyadmin=$(
 json_conf_file_=$(mktemp)
 
 if [ "$include_phpmyadmin" = true ]; then
-    cmd_log "$me: info: Detected phpMyAdmin include directive. Injecting configuration as specified"
+    cmd_log "${me}: info: Detected phpMyAdmin include directive. Injecting configuration as specified"
 
     jq --argjson phpmyadmin_block "$phpmyadmin_block" '
         .config[].parsed[] |= (
@@ -71,9 +71,9 @@ if [ "$include_phpmyadmin" = true ]; then
                 .
             end
         )
-    ' <"$json_conf_file" >"$json_conf_file_" && mv -f $json_conf_file_ $json_conf_file
+    ' <"$json_conf_file" >"$json_conf_file_" && mv -f "$json_conf_file_" "$json_conf_file"
 else
-    cmd_log "$me: info: Appending configuration to the first server block"
+    cmd_log "${me}: info: Appending configuration to the first server block"
 
     jq --argjson phpmyadmin_block "$phpmyadmin_block" '
         .config[].parsed |=(
@@ -89,4 +89,4 @@ else
     ' <"$json_conf_file" > "$json_conf_file_" && mv -f "$json_conf_file_" "$json_conf_file"
 fi
 
-crossplane build --force $json_conf_file && rm -rf $json_conf_file
+crossplane build --force "$json_conf_file" && rm -rf "$json_conf_file"

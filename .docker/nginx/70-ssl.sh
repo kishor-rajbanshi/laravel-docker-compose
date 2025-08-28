@@ -2,8 +2,8 @@
 
 set -e
 
-ssl_dir="/etc/nginx/ssl"
-server_map="$ssl_dir/server.map"
+ssl_dir="/etc/nginx/ssl/"
+server_map="${ssl_dir}/server.map"
 me=$(basename "$0")
 
 cmd_log() {
@@ -12,18 +12,18 @@ cmd_log() {
     fi
 }
 
-if [ -z "$(ls -A $ssl_dir)" ]; then
-    cmd_log "$me: info: $ssl_dir is empty, skipping configuration"
+if [ -z "$(ls -A "$ssl_dir")" ]; then
+    cmd_log "${me}: info: $ssl_dir is empty, skipping configuration"
     exit 0
 fi
 
-cmd_log "$me: info: $ssl_dir is not empty, will attempt to perform configuration"
+cmd_log "${me}: info: $ssl_dir is not empty, will attempt to perform configuration"
 
 . /opt/venv/bin/activate
 
 json_conf_file=$(mktemp)
 
-crossplane parse "$NGINX_MAIN_CONF" -o "$json_conf_file"
+crossplane parse "$NGINX_CONF_FILE" -o "$json_conf_file"
 
 jq -c '.config[].parsed[] | select(.directive == "server")' "$json_conf_file" |
     while read -r server; do
@@ -31,18 +31,18 @@ jq -c '.config[].parsed[] | select(.directive == "server")' "$json_conf_file" |
         server_name=$(echo "$server" | jq -r '.block[] | select(.directive == "server_name") | .args | join(" ")')
 
         [ "$server_name" = "_" ] && {
-            cmd_log "$me: info: server_name is \"$server_name\", skipping configuration"
+            cmd_log "${me}: info: server_name is \"$server_name\", skipping configuration"
             continue
         }
 
         include_no_ssl=$(echo "$server" | jq -r '[.block[] | select(.directive=="include" and .args[0] == "*no_ssl")] | any')
 
         [ "$include_no_ssl" = true ] && {
-            cmd_log "$me: info: *no_ssl included for \"$server_name\", skipping configuration"
+            cmd_log "${me}: info: *no_ssl included for \"$server_name\", skipping configuration"
             continue
         }
 
-        cmd_log "$me: info: Searching for SSL certificate associated with \"$server_name\""
+        cmd_log "${me}: info: Searching for SSL certificate associated with \"$server_name\""
 
         for cert in "$ssl_dir"/*; do
             cert_domains=$(openssl x509 -in "$cert" -noout -text 2>/dev/null | awk '
@@ -60,7 +60,7 @@ jq -c '.config[].parsed[] | select(.directive == "server")' "$json_conf_file" |
 
             server_name_matches_cert=1
 
-            for domain in $server_name; do
+            for domain in "$server_name"; do
                 case " $cert_domains " in
                 *" $domain "*) ;;
                 *)
@@ -72,7 +72,7 @@ jq -c '.config[].parsed[] | select(.directive == "server")' "$json_conf_file" |
 
             [ "$server_name_matches_cert" -eq 1 ] || continue
 
-            cmd_log "$me: info: SSL certificate for \"$server_name\" found at $cert, proceeding with configuration"
+            cmd_log "${me}: info: SSL certificate for \"$server_name\" found at ${cert}, proceeding with configuration"
 
             cert_has_key=0
 
@@ -86,13 +86,13 @@ jq -c '.config[].parsed[] | select(.directive == "server")' "$json_conf_file" |
             done
 
             [ "$cert_has_key" -eq 0 ] && {
-                cmd_log "$me: warning: Key for $cert not found, skipping configuration"
+                cmd_log "${me}: warning: Key for $cert not found, skipping configuration"
                 continue
             }
 
             json_conf_file_=$(mktemp)
 
-            ssl_port=$(echo $server | jq -r '
+            ssl_port=$(echo "$server" | jq -r '
                 .block[]
                 | select(.directive == "include" and (.args[0] | test("^ssl_port\\*\\d+")))
                 | .args[0]
@@ -100,7 +100,7 @@ jq -c '.config[].parsed[] | select(.directive == "server")' "$json_conf_file" |
             ')
 
             [ -n "$ssl_port" ] && {
-                cmd_log "$me: info: Using ssl port \"$ssl_port\" for \"$server_name\""
+                cmd_log "${me}: info: Using ssl port \"$ssl_port\" for \"$server_name\""
             }
 
             jq \
@@ -178,7 +178,7 @@ jq -c '.config[].parsed[] | select(.directive == "server")' "$json_conf_file" |
                             .
                         end
                     )
-                )' <"$json_conf_file" >"$json_conf_file_" && mv -f $json_conf_file_ $json_conf_file
+                )' <"$json_conf_file" >"$json_conf_file_" && mv -f "$json_conf_file_" "$json_conf_file"
 
             continue 2
         done
@@ -187,9 +187,9 @@ jq -c '.config[].parsed[] | select(.directive == "server")' "$json_conf_file" |
 
         echo "$server_name => $root" >>"$server_map"
 
-        cmd_log "$me: warning: Certificate or key associated with \"$server_name\" not found, skipping configuration"
+        cmd_log "${me}: warning: Certificate or key associated with \"$server_name\" not found, skipping configuration"
     done
 
-crossplane build --force $json_conf_file && rm -rf $json_conf_file
+crossplane build --force "$json_conf_file" && rm -rf "$json_conf_file"
 
-cmd_log "$me: info: Configuration complete"
+cmd_log "${me}: info: Configuration complete"
