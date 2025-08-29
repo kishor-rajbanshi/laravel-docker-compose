@@ -1,11 +1,11 @@
 ARG NGINX_VERSION
 
-FROM nginx:"${NGINX_VERSION:-stable}"-alpine
+FROM nginx:"${NGINX_VERSION:-stable}-alpine"
 
 ARG USER_ID
 ARG GROUP_ID
 
-ENV NGINX_DEFAULT_CONF_FILE="/etc/nginx/default.conf"
+ENV NGINX_DEFAULT_CONF_FILE="/etc/nginx/templates/default.conf"
 ENV NGINX_CONF_FILE="/etc/nginx/nginx.conf"
 
 COPY --chmod=0755 \

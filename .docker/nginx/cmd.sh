@@ -2,9 +2,8 @@
 
 set -e
 
-templates_dir="/etc/nginx/templates/"
 user_conf_file="/var/www/html/nginx.conf"
-template_name="default.conf.template"
+template_file="/etc/nginx/templates/default.conf.template"
 
 cmd_log() {
     if [ -z "${NGINX_CMD_QUIET_LOGS:-}" ]; then
@@ -12,20 +11,30 @@ cmd_log() {
     fi
 }
 
-i=1; for host in "$NGINX_HOSTS"; do export HOST_${i}="$host"; i=$((i + 1)); done
+i=1
+for host in "${NGINX_HOSTS}"; do
+    export HOST_${i}="$host"
+    i=$((i + 1))
+done
 
-i=1; for port in "$NGINX_PORTS"; do export PORT_${i}="$port"; i=$((i + 1)); done
+i=1
+for port in "${NGINX_PORTS}"; do
+    export PORT_${i}="$port"
+    i=$((i + 1))
+done
 
-i=1; for ssl_port in "$NGINX_SSL_PORTS"; do export SSL_PORT_${i}="$ssl_port"; i=$((i + 1)); done
-
-mkdir -p "$templates_dir"
+i=1
+for ssl_port in "${NGINX_SSL_PORTS}"; do
+    export SSL_PORT_${i}="$ssl_port"
+    i=$((i + 1))
+done
 
 if [ -f "$user_conf_file" ]; then
     cmd_log "${0}: Using $user_conf_file"
-    ln -sf "$user_conf_file" "${templates_dir}/$template_name"
+    ln -sf "$user_conf_file" "$template_file"
 else
     cmd_log "${0}: No $user_conf_file found — using default configuration"
-    ln -sf "$NGINX_DEFAULT_CONF_FILE" "${templates_dir}/$template_name"
+    ln -sf "$NGINX_DEFAULT_CONF_FILE" "$template_file"
 fi
 
 if [ "${APP_DEBUG}" = "true" ] && command -v nginx-debug >/dev/null; then

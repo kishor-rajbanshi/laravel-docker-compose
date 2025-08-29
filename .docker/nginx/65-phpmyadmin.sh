@@ -10,7 +10,7 @@ cmd_log() {
     fi
 }
 
-if [ "$PHPMYADMIN_ENABLED" != "true" ] || { [ "$DB_CONNECTION" != "mysql" ] && [ "$DB_CONNECTION" != "mariadb" ]; }; then
+if [ "${PHPMYADMIN_ENABLED}" != "true" ] || { [ "${DB_CONNECTION}" != "mysql" ] && [ "${DB_CONNECTION}" != "mariadb" ]; }; then
     cmd_log "${me}: info: Skipping phpmyadmin - not enabled or unsupported database"
     exit 0
 fi
@@ -58,7 +58,7 @@ include_phpmyadmin=$(
       ] | any'
 )
 
-json_conf_file_=$(mktemp)
+updated_json_conf_file=$(mktemp)
 
 if [ "$include_phpmyadmin" = true ]; then
     cmd_log "${me}: info: Detected phpMyAdmin include directive. Injecting configuration as specified"
@@ -71,7 +71,7 @@ if [ "$include_phpmyadmin" = true ]; then
                 .
             end
         )
-    ' <"$json_conf_file" >"$json_conf_file_" && mv -f "$json_conf_file_" "$json_conf_file"
+    ' <"$json_conf_file" >"$updated_json_conf_file" && mv -f "$updated_json_conf_file" "$json_conf_file"
 else
     cmd_log "${me}: info: Appending configuration to the first server block"
 
@@ -86,7 +86,7 @@ else
                 end
             )
         ).data
-    ' <"$json_conf_file" > "$json_conf_file_" && mv -f "$json_conf_file_" "$json_conf_file"
+    ' <"$json_conf_file" > "$updated_json_conf_file" && mv -f "$updated_json_conf_file" "$json_conf_file"
 fi
 
 crossplane build --force "$json_conf_file" && rm -rf "$json_conf_file"
