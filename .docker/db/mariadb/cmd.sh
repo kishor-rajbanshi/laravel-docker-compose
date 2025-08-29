@@ -4,7 +4,7 @@ set -e
 
 data_dir="/var/db/mariadb/"
 conf_dir="/etc/mysql/mariadb.conf.d/"
-user_conf="/var/www/html/mariadb.cnf"
+user_cnf_file="/var/www/html/mariadb.cnf"
 
 cmd_log() {
     if [ -z "${DB_CMD_QUIET_LOGS:-}" ]; then
@@ -26,9 +26,9 @@ mkdir -p $data_dir
 
 echo "[mariadbd]\ndatadir=$data_dir" >$conf_dir/datadir.cnf
 
-if [ -f "$user_conf" ]; then
-    cmd_log "$0: info: Using $user_conf"
-    ln -sf "$user_conf" "$conf_dir"
+if [ -f "$user_cnf_file" ]; then
+    cmd_log "$0: info: Using $user_cnf_file"
+    ln -sf "$user_cnf_file" "$conf_dir"
 fi
 
 docker-entrypoint.sh mariadbd
