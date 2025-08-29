@@ -2,9 +2,9 @@
 
 set -e
 
-user_conf="/var/www/html/my.cnf"
-data_dir="/var/db/mysql/"
-conf_dir="/etc/mysql/"
+user_cnf="/var/www/html/my.cnf"
+data_dir="/var/db/mysql"
+conf_dir="/etc/mysql/conf.d"
 
 cmd_log() {
     if [ -z "${DB_CMD_QUIET_LOGS:-}" ]; then
@@ -24,11 +24,11 @@ fi
 
 mkdir -p "$data_dir"
 
-sed -i "s|^datadir=.*|datadir=$data_dir|" "$MYSQL_MAIN_CONF"
+echo -e "[mysqld]\ndatadir=$data_dir" >"${conf_dir}/datadir.cnf"
 
-if [ -f "$user_conf" ]; then
-    cmd_log "$0: info: Using $user_conf"
-    ln -sf "$user_conf" "$conf_dir"
+if [ -f "$user_cnf" ]; then
+    cmd_log "${0}: info: Using $user_cnf"
+    ln -sf "$user_cnf" "$conf_dir"
 fi
 
 docker-entrypoint.sh mysqld

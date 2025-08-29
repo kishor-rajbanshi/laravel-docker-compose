@@ -1,11 +1,9 @@
 ARG DB_VERSION
 
-FROM mysql:${DB_VERSION:-latest}
+FROM mysql:"${DB_VERSION:-latest}"
 
 ARG USER_ID
 ARG GROUP_ID
-
-ENV MYSQL_MAIN_CONF=/etc/my.cnf
 
 COPY --chmod=0755 \
     permissions.sh \
