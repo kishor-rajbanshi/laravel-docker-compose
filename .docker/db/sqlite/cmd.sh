@@ -13,7 +13,7 @@ while true; do
 
   [ "$status" = "running" ] && break
 
-  cmd_log "$0: info: Waiting for ${COMPOSE_PROJECT_NAME}-nginx to start"
+  cmd_log "${0}: info: Waiting for ${COMPOSE_PROJECT_NAME}-nginx to start"
   
   sleep 1
 done
