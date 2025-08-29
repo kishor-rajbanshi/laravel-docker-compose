@@ -2,7 +2,7 @@
 
 set -e
 
-user_ini="/var/www/html/php.ini"
+user_ini_file="/var/www/html/php.ini"
 
 cmd_log() {
     if [ -z "${PHP_CMD_QUIET_LOGS:-}" ]; then
@@ -18,9 +18,9 @@ else
     ln -sf "${PHP_INI_DIR}/php.ini-development" "${PHP_INI_DIR}/php.ini"
 fi
 
-if [ -f "$user_ini" ]; then
-    cmd_log "${0}: info: Using $user_ini"
-    ln -sf "$user_ini" "${PHP_INI_DIR}/conf.d/php.ini"
+if [ -f "$user_ini_file" ]; then
+    cmd_log "${0}: info: Using $user_ini_file"
+    ln -sf "$user_ini_file" "${PHP_INI_DIR}/conf.d/php.ini"
 fi
 
 docker-php-entrypoint php-fpm
