@@ -2,7 +2,7 @@
 
 set -e
 
-user_cnf="/var/www/html/my.cnf"
+user_cnf_file="/var/www/html/my.cnf"
 data_dir="/var/db/mysql"
 conf_dir="/etc/mysql/conf.d"
 
@@ -26,9 +26,9 @@ mkdir -p "$data_dir"
 
 echo -e "[mysqld]\ndatadir=$data_dir" >"${conf_dir}/datadir.cnf"
 
-if [ -f "$user_cnf" ]; then
-    cmd_log "${0}: info: Using $user_cnf"
-    ln -sf "$user_cnf" "$conf_dir"
+if [ -f "$user_cnf_file" ]; then
+    cmd_log "${0}: info: Using $user_cnf_file"
+    ln -sf "$user_cnf_file" "$conf_dir"
 fi
 
 docker-entrypoint.sh mysqld
