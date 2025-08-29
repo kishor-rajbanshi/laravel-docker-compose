@@ -1,6 +1,6 @@
 ARG PHP_VERSION
 
-FROM php:${PHP_VERSION:+${PHP_VERSION}-}fpm-alpine
+FROM php:"${PHP_VERSION:+${PHP_VERSION}-}fpm-alpine"
 
 ARG USER_ID
 ARG GROUP_ID
@@ -19,7 +19,7 @@ ADD --chmod=0755 \
 RUN apk update && apk add --no-cache fcgi
 
 RUN if [ -n "${PHP_EXTENSIONS}" ]; then \
-        install-php-extensions ${PHP_EXTENSIONS}; \
+        install-php-extensions "${PHP_EXTENSIONS}"; \
     fi
 
 RUN permissions.sh www-data
